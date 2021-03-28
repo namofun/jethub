@@ -1,0 +1,39 @@
+﻿@model IndexModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="mt-4 mb-4">
+    <div class="jumbotron" style="background-color: rgb(244, 245, 247); padding-top: 20px; padding-bottom: 10px">
+        <div class="row align-middle" style="margin-left: 1px">
+            <h3>Jet<span style="font-weight: 200">Hub</span></h3>1.0.0.7
+        </div>
+        <p>
+            <small>
+                Uptime: <i class="fas fa-circle" style="color: #26C281; font-size: x-small; margin-right: 2px"></i>07.08:55:54
+                |
+                Load average: 0.13, 0.08, 0.05
+                |
+                Users: 1
+            </small>
+        </p>
+
+        <h6 style="font-weight: 400" class="mb-1">Hub Version</h6>
+        <p>
+            <small style="color: #42526e">
+                <i class="fas fa-fingerprint fa-fw"></i> <span id="latest-commitid" title="Commit ID">@Global.CommitId</span>
+                <br />
+                <i class="fas fa-code-branch fa-fw"></i> <span id="latest-branch" title="Branch: @Global.Branch">@Global.Branch</span>
+            </small>
+        </p>
+
+        <h6 style="font-weight: 400" class="mb-1">Judgehost Version</h6>
+        <p>
+            <small style="color: #42526e">
+                <i class="fas fa-fingerprint fa-fw"></i> <span id="latest-commitid" title="Commit ID">05d53d1d2adebdb46c4e8942683b2d670ee2b407</span>
+                <br />
+                <i class="fas fa-code-branch fa-fw"></i> <span id="latest-branch" title="Branch: ">3 months</span>
+            </small>
+        </p>
+    </div>
+</div>
