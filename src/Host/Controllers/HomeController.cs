@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using JetHub.Models;
+using JetHub.Services;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace JetHub.Controllers
 {
@@ -6,9 +9,13 @@ namespace JetHub.Controllers
     {
         [HttpGet("/")]
         [HttpGet("/index")]
-        public IActionResult Index()
+        public async Task<IActionResult> Index([FromServices] ISystemInfo systemInfo)
         {
-            return View();
+            return View(new IndexModel
+            {
+                LoadAverage = await systemInfo.GetLoadavgAsync(),
+                Uptime = await systemInfo.GetUptimeAsync(),
+            });
         }
 
 

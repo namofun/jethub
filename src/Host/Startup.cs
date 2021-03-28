@@ -35,6 +35,15 @@ namespace JetHub
             });
 
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<GlobalOptions>>().Value);
+
+            if (System.Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                services.AddSingleton<ISystemInfo, ProcfsSystemInfo>();
+            }
+            else
+            {
+                services.AddSingleton<ISystemInfo, FakeSystemInfo>();
+            }
         }
 
         public void Configure(IApplicationBuilder app)
@@ -48,13 +57,9 @@ namespace JetHub
                 app.UseExceptionHandler("/error");
             }
 
-            app.UseHttpsRedirection();
             app.UseStaticFiles();
-
             app.UseRouting();
-
             app.UseAuthorization();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
