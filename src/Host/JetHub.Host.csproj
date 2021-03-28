@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SatelliteSite.Abstraction" Version="$(SubstrateVersion)" />
+    <PackageReference Include="SatelliteSite.StaticWebAssets.Basic" Version="$(StaticAssetsVersion)" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="$(AspNetCoreVersion)" />
+  </ItemGroup>
+
+</Project>
