@@ -19,6 +19,14 @@ namespace JetHub.Controllers
         }
 
 
+        [HttpGet("/jsonviewer")]
+        public IActionResult JsonViewer(string view_url)
+        {
+            if (view_url == null || !view_url.StartsWith("/api")) return BadRequest();
+            return View();
+        }
+
+
         [Route("/error")]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
