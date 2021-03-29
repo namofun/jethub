@@ -7,5 +7,7 @@
         public string CommitId { get; set; }
 
         public string Branch { get; set; }
+
+        public string Version { get; set; }
     }
 }

@@ -11,10 +11,20 @@ namespace JetHub.Controllers
         [HttpGet("/index")]
         public async Task<IActionResult> Index([FromServices] ISystemInfo systemInfo)
         {
+            var judgehostVersion = await systemInfo.GetJudgehostVersionInfoAsync();
+
             return View(new IndexModel
             {
                 LoadAverage = await systemInfo.GetLoadavgAsync(),
                 Uptime = await systemInfo.GetUptimeAsync(),
+                Cmdline = await systemInfo.GetCmdlineAsync(),
+                Kernel = await systemInfo.GetVersionAsync(),
+                Judgehosts = await systemInfo.GetRunningServicesAsync(),
+                Processors = await systemInfo.GetProcessorsAsync(),
+                HardDriveStatistics = await systemInfo.GetHardDriveStatisticsAsync(),
+                MemoryStatistics = await systemInfo.GetMemoryStatisticsAsync(),
+                JudgehostCommitId = judgehostVersion.CommitId,
+                JudgehostBranch = judgehostVersion.Branch,
             });
         }
 

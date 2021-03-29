@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,6 +17,16 @@ namespace JetHub.Services
         Task<TimeSpan> GetUptimeAsync();
 
         string GetVfsRoot();
+
+        Task<List<string>> GetRunningServicesAsync();
+
+        Task<Dictionary<string, int>> GetProcessorsAsync();
+
+        Task<(double Used, double Total)> GetMemoryStatisticsAsync();
+
+        Task<Dictionary<string, (string Type, double Used, double Total)>> GetHardDriveStatisticsAsync();
+
+        Task<(string CommitId, string Branch)> GetJudgehostVersionInfoAsync();
     }
 
     public class FakeSystemInfo : ISystemInfo
@@ -46,6 +57,44 @@ namespace JetHub.Services
             if (!Directory.Exists(playground)) Directory.CreateDirectory(playground);
             return playground;
         }
+
+        public Task<List<string>> GetRunningServicesAsync()
+        {
+            return Task.FromResult(new List<string>
+            {
+                "domjudge-judgehost@0",
+                "domjudge-judgehost@1",
+                "domjudge-judgehost@2",
+                "domjudge-judgehost@3",
+            });
+        }
+
+        public Task<Dictionary<string, int>> GetProcessorsAsync()
+        {
+            return Task.FromResult(new Dictionary<string, int>
+            {
+                ["Intel(R) Xeon(R) CPU E5-2682 v4 @@ 2.50GHz"] = 4,
+            });
+        }
+
+        public Task<(double Used, double Total)> GetMemoryStatisticsAsync()
+        {
+            return Task.FromResult((118.0, 2048.0));
+        }
+
+        public Task<Dictionary<string, (string Type, double Used, double Total)>> GetHardDriveStatisticsAsync()
+        {
+            return Task.FromResult(new Dictionary<string, (string Type, double Used, double Total)>
+            {
+                ["/dev/vda1"] = ("ext4", 6.24, 20.0),
+                ["/dev/vda2"] = ("ext4", 12.35, 20.0),
+            });
+        }
+
+        public Task<(string, string)> GetJudgehostVersionInfoAsync()
+        {
+            return Task.FromResult(("abcdefg", "master"));
+        }
     }
 
     public class ProcfsSystemInfo : ISystemInfo
@@ -55,10 +104,35 @@ namespace JetHub.Services
             return File.ReadAllTextAsync("/proc/cmdline");
         }
 
+        public Task<Dictionary<string, (string Type, double Used, double Total)>> GetHardDriveStatisticsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<(string, string)> GetJudgehostVersionInfoAsync()
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<string> GetLoadavgAsync()
         {
             var loadavg = await File.ReadAllTextAsync("/proc/loadavg");
             return string.Join(", ", loadavg.Trim().Split(' ').Take(3));
+        }
+
+        public Task<(double Used, double Total)> GetMemoryStatisticsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Dictionary<string, int>> GetProcessorsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<string>> GetRunningServicesAsync()
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<TimeSpan> GetUptimeAsync()

@@ -1,9 +1,9 @@
 ﻿@model IndexModel
 
 <div class="mt-4 mb-4">
-    <div class="jumbotron" style="background-color: rgb(244, 245, 247); padding-top: 30px; padding-bottom: 30px">
+    <div class="jumbotron mb-0" style="background-color: #f4f5f7; padding-top: 30px; padding-bottom: 30px">
         <div class="row align-middle" style="margin-left: 1px">
-            <h3>Jet<span style="font-weight: 200">Hub</span></h3>1.0.0.7
+            <h3>Jet<span style="font-weight: 200">Hub</span></h3>@Global.Version
         </div>
         <p>
             <small>
@@ -24,9 +24,48 @@
         <h6 style="font-weight: 400" class="mb-0">
             Judgehost Version
             <small style="color: #42526e">
-                <i class="fas fa-fingerprint fa-fw"></i> <span id="latest-commitid" title="Commit ID"><a href="https://github.com/namofun/judgehost/tree/abcdefg" class="text-reset">abcdefg</a></span>
-                <i class="fas fa-code-branch fa-fw"></i> <span id="latest-branch" title="Branch: ">3 months</span>
+                <i class="fas fa-fingerprint fa-fw"></i> <span id="latest-commitid" title="Commit ID"><a href="https://github.com/namofun/judgehost/tree/@Model.JudgehostCommitId" class="text-reset">@Model.JudgehostCommitId[0..7]</a></span>
+                <i class="fas fa-code-branch fa-fw"></i> <span id="latest-branch" title="Branch: @Model.JudgehostBranch">@Model.JudgehostBranch</span>
             </small>
         </h6>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card border-0 p-4 mb-3" style="background-color: #f4f5f7;">
+            <h6 class="font-weight-normal mb-3"><i class="fas fa-microchip"></i>&nbsp;Processor status</h6>
+            @foreach (var proc in Model.Processors)
+            {
+                <p class="mb-2"><i class="fas fa-circle" style="color: #26C281; font-size: x-small; margin-right: 2px"></i> @proc.Value &times; @proc.Key</p>
+            }
+            @foreach (var jh in Model.Judgehosts)
+            {
+                <p class="mb-2"><i class="fas fa-circle" style="color: #26C281; font-size: x-small; margin-right: 2px"></i> @jh</p>
+            }
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 p-4 mb-3" style="background-color: #f4f5f7;">
+            <h6 class="font-weight-normal mb-3"><i class="fas fa-memory"></i>&nbsp;Storage status</h6>
+            <p class="mb-1"><i class="fas fa-circle" style="color: #26C281; font-size: x-small; margin-right: 2px"></i> Memory: @((int)Model.MemoryStatistics.Used)MB / @((int)Model.MemoryStatistics.Total)MB</p>
+            <div class="progress mb-3">
+                <div class="progress-bar" role="progressbar" style="width: @(Model.MemoryStatistics.Used * 100 / Model.MemoryStatistics.Total)%" aria-valuenow="@(Model.MemoryStatistics.Used * 100 / Model.MemoryStatistics.Total)" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            @foreach (var hdd in Model.HardDriveStatistics)
+            {
+                <p class="mb-1"><i class="fas fa-circle" style="color: #26C281; font-size: x-small; margin-right: 2px"></i> @hdd.Key: @hdd.Value.Type, @(hdd.Value.Used.ToString("F2"))GB / @(hdd.Value.Total.ToString("F2"))GB</p>
+                <div class="progress mb-3">
+                    <div class="progress-bar" role="progressbar" style="width: @(hdd.Value.Used * 100 / hdd.Value.Total)%" aria-valuenow="@(hdd.Value.Used * 100 / hdd.Value.Total)" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 p-4 mb-3" style="background-color: #f4f5f7;">
+            <h6 class="font-weight-normal mb-3"><i class="fab fa-ubuntu"></i>&nbsp;Kernel status</h6>
+            <p class="mb-2"><i class="fas fa-circle" style="color: #26C281; font-size: x-small; margin-right: 2px"></i> Kernel: <small>@Model.Kernel</small></p>
+            <p class="mb-2"><i class="fas fa-circle" style="color: #26C281; font-size: x-small; margin-right: 2px"></i> Cmdline: <small>@Model.Cmdline</small></p>
+        </div>
     </div>
 </div>
