@@ -5,6 +5,8 @@
     <AspNetCoreVersion>3.1.13</AspNetCoreVersion>
     <StaticAssetsVersion>1.1.0</StaticAssetsVersion>
     <SubstrateVersion>1.0.36</SubstrateVersion>
+    <BaseOutputPath>$(MSBuildThisFileDirectory)artifacts\$(MSBuildProjectName)\bin\</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)artifacts\$(MSBuildProjectName)\obj\</BaseIntermediateOutputPath>
   </PropertyGroup>
 
 </Project>
