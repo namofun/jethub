@@ -38,7 +38,7 @@ Released under the MIT license (LICENSE.txt)
 
 <!-- For source JSON -->
 <div class="code" id="source_json" data-header="Source JSON" style="margin-top:20px;">
-    <div class="d-flex justify-content-center">
+    <div class="d-flex justify-content-center" style="margin-top: 20px">
         <i class="fa-3x fas fa-circle-notch fa-spin" id="jsonLoadingSpinner" style="color:#007bff"></i>
     </div>
     <div id="wrapper">
@@ -52,10 +52,13 @@ var tree;
 var expanded = false;
 var dataStr = "";
 var wrapper = document.getElementById("wrapper");
+
 function goBack() {
-    if (history.length){
-        window.history.back();
-    }
+    window.history.back();
+}
+
+function goNext() {
+    window.history.forward();
 }
 
 function toggleJSON() {

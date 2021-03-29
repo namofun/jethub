@@ -14,6 +14,8 @@ namespace JetHub.Services
         Task<string> GetLoadavgAsync();
 
         Task<TimeSpan> GetUptimeAsync();
+
+        string GetVfsRoot();
     }
 
     public class FakeSystemInfo : ISystemInfo
@@ -36,6 +38,13 @@ namespace JetHub.Services
         public Task<TimeSpan> GetUptimeAsync()
         {
             return Task.FromResult(TimeSpan.FromSeconds(621260));
+        }
+
+        public string GetVfsRoot()
+        {
+            var playground = Path.Combine(Environment.CurrentDirectory, "playground");
+            if (!Directory.Exists(playground)) Directory.CreateDirectory(playground);
+            return playground;
         }
     }
 
@@ -61,6 +70,11 @@ namespace JetHub.Services
         public Task<string> GetVersionAsync()
         {
             return File.ReadAllTextAsync("/proc/version");
+        }
+
+        public string GetVfsRoot()
+        {
+            return "/opt/domjudge/judgehost/judgings";
         }
     }
 }

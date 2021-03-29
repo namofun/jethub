@@ -385,6 +385,9 @@ var jsonTree = (function() {
             if (val.length > 3 && (val.charAt(val.length-3) === "." || val.charAt(val.length-4) === ".")) {
                 shouldShowJSONViewerURL = false;
             }
+            if (val.indexOf("/api/vfs") === 0 && val.charAt(val.length-1) !== '/') {
+                shouldShowJSONViewerURL = false;
+            }
             if (shouldShowJSONViewerURL) {
                 val = "<span style=\"color:#953b39\"><a href=\"/jsonviewer?view_url=" + val.substring(urlStartIdx, val.length) + "\">" + val + "</a></span>";
             } else {
