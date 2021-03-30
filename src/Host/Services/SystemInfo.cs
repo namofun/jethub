@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,6 +28,8 @@ namespace JetHub.Services
         Task<Dictionary<string, (string Type, double Used, double Total)>> GetHardDriveStatisticsAsync();
 
         Task<(string CommitId, string Branch)> GetJudgehostVersionInfoAsync();
+
+        Task<string> RunAsync(string fileName, string cmdline, int timeOut);
     }
 
     public class FakeSystemInfo : ISystemInfo
@@ -95,6 +98,11 @@ namespace JetHub.Services
         {
             return Task.FromResult(("abcdefg", "master"));
         }
+
+        public Task<string> RunAsync(string fileName, string cmdline, int timeOut)
+        {
+            throw new NotSupportedException();
+        }
     }
 
     public class ProcfsSystemInfo : ISystemInfo
@@ -149,6 +157,41 @@ namespace JetHub.Services
         public string GetVfsRoot()
         {
             return "/opt/domjudge/judgehost/judgings";
+        }
+
+        public Task<string> RunAsync(string fileName, string cmdline, int timeOut)
+        {
+            var tcs = new TaskCompletionSource<string>();
+
+            Task.Run(() =>
+            {
+                using var proc = Process.Start(
+                    new ProcessStartInfo(fileName, cmdline)
+                    {
+                        RedirectStandardInput = true,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                    });
+
+                if (proc == null)
+                {
+                    tcs.SetException(new NotSupportedException("Process start failed."));
+                    return;
+                }
+
+                proc.StandardInput.Close();
+                if (!proc.WaitForExit(timeOut))
+                {
+                    proc.Kill(true);
+                    tcs.SetException(new TimeoutException());
+                }
+                else
+                {
+                    tcs.SetResult(proc.StandardOutput.ReadToEnd());
+                }
+            });
+
+            return tcs.Task;
         }
     }
 }

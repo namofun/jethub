@@ -1,0 +1,75 @@
+﻿@inject IPackageService Packages
+
+<h1 class="mt-3">Packages</h1>
+
+<p>Last update: @Packages.LastCache</p>
+
+<h4>HOST @@ /</h4>
+
+<div class="table-wrapper mb-4">
+    <table class="data-table table table-sm table-striped" style="width:auto">
+        <thead>
+            <tr role="row">
+                <th scope="col" class="sortable searchable" style="min-width:20em">name</th>
+                <th scope="col" class="sortable searchable">arch.</th>
+                <th scope="col" class="sortable searchable">status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Packages.Last ?? Enumerable.Empty<InstalledPackage>())
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Architect</td>
+                    <td>@string.Join(',', item.Status.Where(a => a != "installed"))</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<h4>SANDBOX @@ /chroot/domjudge/</h4>
+
+<div class="table-wrapper">
+    <table class="data-table table table-sm table-striped" style="width:auto">
+        <thead>
+            <tr role="row">
+                <th scope="col" class="sortable searchable" style="min-width:20em">name</th>
+                <th scope="col" class="sortable searchable">arch.</th>
+                <th scope="col" class="sortable searchable">status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Packages.LastInChroot ?? Enumerable.Empty<InstalledPackage>())
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Architect</td>
+                    <td>@string.Join(',', item.Status.Where(a => a != "installed"))</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<script>
+    $().ready(function () {
+        $('.data-table').DataTable({
+            "paging": false,
+            "searching": true,
+            "ordering": true,
+            "order": [[0, 'desc']],
+            "info": false,
+            "autoWidth": true,
+            "language": {
+                "searchPlaceholder": "filter table",
+                "search": "_INPUT_",
+            },
+            'aoColumnDefs': [
+                { aTargets: ['sortable'], bSortable: true },
+                { aTargets: ['searchable'], bSearchable: true },
+                { aTargets: ['_all'], bSortable: false, bSearchable: false }
+            ],
+        });
+    });
+</script>

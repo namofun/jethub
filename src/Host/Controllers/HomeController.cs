@@ -29,6 +29,13 @@ namespace JetHub.Controllers
         }
 
 
+        [HttpGet("/packages")]
+        public IActionResult Packages()
+        {
+            return View();
+        }
+
+
         [HttpGet("/jsonviewer")]
         public IActionResult JsonViewer(string view_url)
         {
