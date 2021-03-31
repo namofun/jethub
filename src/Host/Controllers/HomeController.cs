@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using JetHub.Models;
+﻿using JetHub.Models;
 using JetHub.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -18,7 +17,6 @@ namespace JetHub.Controllers
             {
                 LoadAverage = await systemInfo.GetLoadavgAsync(),
                 Uptime = await systemInfo.GetUptimeAsync(),
-                Judgehosts = new List<string>(), // await systemInfo.GetRunningServicesAsync(),
                 JudgehostCommitId = judgehostVersion.CommitId,
                 JudgehostBranch = judgehostVersion.Branch,
             });

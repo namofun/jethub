@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +16,8 @@ namespace JetHub.Services
         (double Used, double Total) Swap { get; }
 
         IReadOnlyDictionary<string, (string Type, double Used, double Total)> HardDrive { get; }
+
+        IReadOnlyList<(string ServiceName, string JudgehostName)> Judgehosts { get; }
     }
 
     public class FakeStorageInfo : IStorageInfo
@@ -29,6 +32,15 @@ namespace JetHub.Services
                 ["/dev/vda1"] = ("/", 6.24, 20.0),
                 ["/dev/vda2"] = ("/boot/efi", 12.35, 20.0),
             };
+
+        public IReadOnlyList<(string ServiceName, string JudgehostName)> Judgehosts { get; }
+            = new List<(string ServiceName, string JudgehostName)>
+            {
+                ("domjudge-judgehost@0", "judgehost-0"),
+                ("domjudge-judgehost@0", "judgehost-1"),
+                ("domjudge-judgehost@0", "judgehost-2"),
+                ("domjudge-judgehost@0", "judgehost-3"),
+            };
     }
 
     public class DfFreeStorageInfo : BackgroundService, IStorageInfo
@@ -41,6 +53,7 @@ namespace JetHub.Services
             _systemInfo = systemInfo;
             _logger = logger;
             HardDrive = new Dictionary<string, (string Type, double Used, double Total)>();
+            Judgehosts = new List<(string ServiceName, string JudgehostName)>();
         }
 
         private async Task UpdateMemoryCore()
@@ -72,7 +85,7 @@ Swap:       2097148       81152     2015996
                 _logger.LogError(e, "An error occurred during updating memory information.");
             }
         }
-        
+
         private async Task UpdateHardDriveCore()
         {
             try
@@ -112,6 +125,21 @@ tmpfs                785     1       785   1% /run/user/1000
                 _logger.LogError(e, "An error occurred during updating disk information.");
             }
         }
+
+        private Task UpdateJudgehostsCore()
+        {
+            const string ReadingDirectory = "/opt/domjudge/judgehost/judgings";
+            var judgehosts = new List<(string, string)>();
+            foreach (var dirname in Directory.GetDirectories(ReadingDirectory))
+            {
+                if (!dirname.StartsWith(ReadingDirectory + "/")) continue;
+                var dirname2 = dirname.Substring(ReadingDirectory.Length + 1);
+                judgehosts.Add((dirname2, dirname2));
+            }
+
+            Judgehosts = judgehosts;
+            return Task.CompletedTask;
+        }
         
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -120,6 +148,7 @@ tmpfs                785     1       785   1% /run/user/1000
             {
                 await UpdateMemoryCore();
                 if (i == 0) await UpdateHardDriveCore();
+                if (i == 0) await UpdateJudgehostsCore();
                 i++; if (i == 10) i = 0; // update hdd per 5min
                 await Task.Delay(30 * 1000, stoppingToken);
             }
@@ -130,5 +159,7 @@ tmpfs                785     1       785   1% /run/user/1000
         public (double Used, double Total) Swap { get; private set; }
         
         public IReadOnlyDictionary<string, (string Type, double Used, double Total)> HardDrive { get; private set; }
+
+        public IReadOnlyList<(string ServiceName, string JudgehostName)> Judgehosts { get; private set; }
     }
 }

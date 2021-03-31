@@ -41,9 +41,9 @@
             {
                 <p class="mb-2"><i class="fas fa-circle @(proc.Core < proc.Processor ? "text-warning" : "text-success")" title="@(proc.Core < proc.Processor ? $"{proc.Core} core and {proc.Processor} threads. Seems that hyper-threading is open, may lead to inaccurate results when judging float-calculation problems." : $"{proc.Core} core and {proc.Processor} threads. Seems that hyper-threading is disabled, which is good.")" style="font-size: x-small; margin-right: 2px"></i> [@(proc.Core)/@(proc.Processor)] @proc.CpuName</p>
             }
-            @foreach (var jh in Model.Judgehosts)
+            @foreach (var jh in Storage.Judgehosts)
             {
-                <p class="mb-2"><i class="fas fa-circle" style="color: #26C281; font-size: x-small; margin-right: 2px"></i> @jh</p>
+                <p class="mb-2"><i class="fas fa-circle" style="color: #26C281; font-size: x-small; margin-right: 2px"></i> @jh.JudgehostName</p>
             }
         </div>
     </div>
