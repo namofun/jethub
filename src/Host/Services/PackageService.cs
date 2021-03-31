@@ -72,7 +72,7 @@ namespace JetHub.Services
 
         private async Task<List<InstalledPackage>> GetInstalledPackagesAsyncCore(string a, string b)
         {
-            var results = await _systemInfo.RunAsync(a, b, 5000);
+            var results = await _systemInfo.RunAsync(a, b, 10000);
             var lines = results.Split('\n');
             var ans = new List<InstalledPackage>();
             foreach (var line in lines)
@@ -128,7 +128,7 @@ namespace JetHub.Services
 
                 var nextExecuteTime = now - now.TimeOfDay + TimeSpan.FromHours(3);
                 if (nextExecuteTime < now) nextExecuteTime = nextExecuteTime.AddDays(1);
-                var executeSpan = nextExecuteTime - now;
+                var executeSpan = nextExecuteTime - DateTimeOffset.Now;
 
                 await Task.Delay(executeSpan, stoppingToken);
             }

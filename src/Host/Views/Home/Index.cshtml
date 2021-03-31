@@ -1,4 +1,5 @@
 ﻿@model IndexModel
+@inject IStorageInfo Storage
 
 <div class="mt-4 mb-4">
     <div class="jumbotron mb-0" style="background-color: #f4f5f7; padding-top: 30px; padding-bottom: 30px">
@@ -48,13 +49,17 @@
     <div class="col-lg-4">
         <div class="card border-0 p-4 mb-3" style="background-color: #f4f5f7;">
             <h6 class="font-weight-normal mb-3"><i class="fas fa-memory"></i>&nbsp;Storage status</h6>
-            <p class="mb-1"><i class="fas fa-circle" style="color: #26C281; font-size: x-small; margin-right: 2px"></i> Memory: @((int)Model.MemoryStatistics.Used)MB / @((int)Model.MemoryStatistics.Total)MB</p>
+            <p class="mb-1"><i class="fas fa-circle text-success" style="color: #26C281; font-size: x-small; margin-right: 2px"></i> Memory: @((int)Storage.Memory.Used)MB / @((int)Storage.Memory.Total)MB</p>
             <div class="progress mb-3">
-                <div class="progress-bar" role="progressbar" style="width: @(Model.MemoryStatistics.Used * 100 / Model.MemoryStatistics.Total)%" aria-valuenow="@(Model.MemoryStatistics.Used * 100 / Model.MemoryStatistics.Total)" aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="progress-bar" role="progressbar" style="width: @(Storage.Memory.Used * 100 / Storage.Memory.Total)%" aria-valuenow="@(Storage.Memory.Used * 100 / Storage.Memory.Total)" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
-            @foreach (var hdd in Model.HardDriveStatistics)
+            <p class="mb-1"><i class="fas fa-circle text-success" style="font-size: x-small; margin-right: 2px"></i> Swap: @((int)Storage.Swap.Used)MB / @((int)Storage.Swap.Total)MB</p>
+            <div class="progress mb-3">
+                <div class="progress-bar" role="progressbar" style="width: @(Storage.Swap.Used * 100 / Storage.Swap.Total)%" aria-valuenow="@(Storage.Swap.Used * 100 / Storage.Swap.Total)" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            @foreach (var hdd in Storage.HardDrive)
             {
-                <p class="mb-1"><i class="fas fa-circle" style="color: #26C281; font-size: x-small; margin-right: 2px"></i> @hdd.Key: @hdd.Value.Type, @(hdd.Value.Used.ToString("F2"))GB / @(hdd.Value.Total.ToString("F2"))GB</p>
+                <p class="mb-1"><i class="fas fa-circle @(hdd.Value.Used + 2 < hdd.Value.Total ? "text-success" : hdd.Value.Used + 1 < hdd.Value.Total ? "text-warning" : "text-danger")" style="font-size: x-small; margin-right: 2px"></i> <span title="Mounted at @hdd.Value.Type">@hdd.Key</span>: @(hdd.Value.Used.ToString("F2"))GB / @(hdd.Value.Total.ToString("F2"))GB</p>
                 <div class="progress mb-3">
                     <div class="progress-bar" role="progressbar" style="width: @(hdd.Value.Used * 100 / hdd.Value.Total)%" aria-valuenow="@(hdd.Value.Used * 100 / hdd.Value.Total)" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>

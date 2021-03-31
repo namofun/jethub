@@ -17,10 +17,6 @@ namespace JetHub.Models
 
         public List<string> Judgehosts { get; set; }
 
-        public (double Used, double Total) MemoryStatistics { get; set; }
-
-        public Dictionary<string, (string Type, double Used, double Total)> HardDriveStatistics { get; set; }
-
         public string JudgehostCommitId { get; set; }
 
         public string JudgehostBranch { get; set; }

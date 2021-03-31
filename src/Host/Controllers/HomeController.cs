@@ -1,4 +1,5 @@
-﻿using JetHub.Models;
+﻿using System.Collections.Generic;
+using JetHub.Models;
 using JetHub.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -19,10 +20,8 @@ namespace JetHub.Controllers
                 Uptime = await systemInfo.GetUptimeAsync(),
                 Cmdline = await systemInfo.GetCmdlineAsync(),
                 Kernel = await systemInfo.GetVersionAsync(),
-                Judgehosts = await systemInfo.GetRunningServicesAsync(),
-                Processors = await systemInfo.GetProcessorsAsync(),
-                HardDriveStatistics = await systemInfo.GetHardDriveStatisticsAsync(),
-                MemoryStatistics = await systemInfo.GetMemoryStatisticsAsync(),
+                Judgehosts = new List<string>(), // await systemInfo.GetRunningServicesAsync(),
+                Processors = new Dictionary<string, int>(), // await systemInfo.GetProcessorsAsync(),
                 JudgehostCommitId = judgehostVersion.CommitId,
                 JudgehostBranch = judgehostVersion.Branch,
             });

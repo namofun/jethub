@@ -24,10 +24,6 @@ namespace JetHub.Services
 
         Task<Dictionary<string, int>> GetProcessorsAsync();
 
-        Task<(double Used, double Total)> GetMemoryStatisticsAsync();
-
-        Task<Dictionary<string, (string Type, double Used, double Total)>> GetHardDriveStatisticsAsync();
-
         Task<(string CommitId, string Branch)> GetJudgehostVersionInfoAsync();
 
         Task<string> RunAsync(string fileName, string cmdline, int timeOut);
@@ -81,20 +77,6 @@ namespace JetHub.Services
             });
         }
 
-        public Task<(double Used, double Total)> GetMemoryStatisticsAsync()
-        {
-            return Task.FromResult((118.0, 2048.0));
-        }
-
-        public Task<Dictionary<string, (string Type, double Used, double Total)>> GetHardDriveStatisticsAsync()
-        {
-            return Task.FromResult(new Dictionary<string, (string Type, double Used, double Total)>
-            {
-                ["/dev/vda1"] = ("ext4", 6.24, 20.0),
-                ["/dev/vda2"] = ("ext4", 12.35, 20.0),
-            });
-        }
-
         public Task<(string, string)> GetJudgehostVersionInfoAsync()
         {
             return Task.FromResult(("abcdefg", "master"));
@@ -120,25 +102,23 @@ namespace JetHub.Services
             return File.ReadAllTextAsync("/proc/cmdline");
         }
 
-        public Task<Dictionary<string, (string Type, double Used, double Total)>> GetHardDriveStatisticsAsync()
+        public async Task<(string, string)> GetJudgehostVersionInfoAsync()
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<(string, string)> GetJudgehostVersionInfoAsync()
-        {
-            throw new NotImplementedException();
+            const string VersionFile = "/opt/domjudge/judgehost/.version";
+            if (File.Exists(VersionFile))
+            {
+                var all = await File.ReadAllTextAsync(VersionFile);
+                var vers = all.Trim().Split(new[] { ' ' }, 2);
+                if (vers.Length == 2) return (vers[0], vers[1]);
+            }
+            
+            return ("unknown", "unknown");
         }
 
         public async Task<string> GetLoadavgAsync()
         {
             var loadavg = await File.ReadAllTextAsync("/proc/loadavg");
             return string.Join(", ", loadavg.Trim().Split(' ').Take(3));
-        }
-
-        public Task<(double Used, double Total)> GetMemoryStatisticsAsync()
-        {
-            throw new NotImplementedException();
         }
 
         public Task<Dictionary<string, int>> GetProcessorsAsync()
@@ -173,6 +153,10 @@ namespace JetHub.Services
 
             Task.Run(() =>
             {
+                _logger.LogInformation(
+                    "Starting {args}...",
+                    fileName + " " + cmdline);
+
                 using var proc = Process.Start(
                     new ProcessStartInfo(fileName, cmdline)
                     {
@@ -183,7 +167,9 @@ namespace JetHub.Services
 
                 if (proc == null)
                 {
-                    _logger.LogError("Process start failed with \"{args}\"...", fileName + " " + cmdline);
+                    _logger.LogError(
+                        "Process start failed with \"{args}\"...",
+                        fileName + " " + cmdline);
                     tcs.SetException(new NotSupportedException("Process start failed."));
                     return;
                 }
@@ -192,14 +178,22 @@ namespace JetHub.Services
                 if (!proc.WaitForExit(timeOut))
                 {
                     proc.Kill(true);
-                    _logger.LogError("Process \"{args}\" running out of time, killing.", fileName + " " + cmdline);
+                    _logger.LogError(
+                        "Process \"{args}\" running out of time, killing.",
+                        fileName + " " + cmdline);
                     tcs.SetException(new TimeoutException());
                 }
                 else
                 {
                     tcs.SetResult(proc.StandardOutput.ReadToEnd());
                     var stderr = proc.StandardError.ReadToEnd().Trim();
-                    _logger.LogInformation("Process \"{args}\" with stderr:\r\n{stderr}", fileName + " " + cmdline, stderr);
+                    if (!string.IsNullOrWhiteSpace(stderr))
+                    {
+                        _logger.LogInformation(
+                            "Process \"{args}\" with stderr:\r\n{stderr}",
+                            fileName + " " + cmdline,
+                            stderr);
+                    }
                 }
             });
 

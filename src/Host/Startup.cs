@@ -44,14 +44,20 @@ namespace JetHub
             if (System.Environment.OSVersion.Platform == PlatformID.Unix)
             {
                 services.AddSingleton<ISystemInfo, ProcfsSystemInfo>();
+
                 services.AddSingleton<AptPackageService>();
                 services.AddSingleton<IPackageService>(sp => sp.GetRequiredService<AptPackageService>());
                 services.AddSingleton<IHostedService>(sp => sp.GetRequiredService<AptPackageService>());
+
+                services.AddSingleton<DfFreeStorageInfo>();
+                services.AddSingleton<IStorageInfo>(sp => sp.GetRequiredService<DfFreeStorageInfo>());
+                services.AddSingleton<IHostedService>(sp => sp.GetRequiredService<DfFreeStorageInfo>());
             }
             else
             {
                 services.AddSingleton<ISystemInfo, FakeSystemInfo>();
                 services.AddSingleton<IPackageService, FakePackageService>();
+                services.AddSingleton<IStorageInfo, FakeStorageInfo>();
             }
         }
 
