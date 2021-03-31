@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,20 +11,16 @@ namespace JetHub.Services
 {
     public interface IPackageService
     {
-        IReadOnlyList<InstalledPackage> Last { get; }
+        IReadOnlyList<InstalledPackage> Global { get; }
 
-        IReadOnlyList<InstalledPackage> LastInChroot { get; }
+        IReadOnlyList<InstalledPackage> Sandbox { get; }
 
-        DateTimeOffset? LastCache { get; }
-
-        Task<List<InstalledPackage>> GetInstalledPackagesAsync();
-
-        Task<List<InstalledPackage>> GetInstalledPackagesInChrootAsync();
+        DateTimeOffset? LastUpdate { get; }
     }
 
     public class FakePackageService : IPackageService
     {
-        public IReadOnlyList<InstalledPackage> Last { get; }
+        public IReadOnlyList<InstalledPackage> Global { get; }
             = new List<InstalledPackage>
             {
                 new InstalledPackage
@@ -36,19 +33,9 @@ namespace JetHub.Services
                 }
             };
 
-        public IReadOnlyList<InstalledPackage> LastInChroot => Last;
+        public IReadOnlyList<InstalledPackage> Sandbox => Global;
 
-        public DateTimeOffset? LastCache => DateTimeOffset.Now.Date;
-
-        public Task<List<InstalledPackage>> GetInstalledPackagesAsync()
-        {
-            return Task.FromResult((List<InstalledPackage>)Last);
-        }
-
-        public Task<List<InstalledPackage>> GetInstalledPackagesInChrootAsync()
-        {
-            return GetInstalledPackagesAsync();
-        }
+        public DateTimeOffset? LastUpdate => DateTimeOffset.Now.Date;
     }
 
     public class AptPackageService : BackgroundService, IPackageService
@@ -59,29 +46,29 @@ namespace JetHub.Services
         public AptPackageService(ISystemInfo systemInfo, ILogger<AptPackageService> logger)
         {
             _systemInfo = systemInfo;
-            Last = Array.Empty<InstalledPackage>();
-            LastInChroot = Array.Empty<InstalledPackage>();
+            Global = Array.Empty<InstalledPackage>();
+            Sandbox = Array.Empty<InstalledPackage>();
             _logger = logger;
         }
 
-        public IReadOnlyList<InstalledPackage> Last { get; internal set; }
+        public IReadOnlyList<InstalledPackage> Global { get; private set; }
 
-        public IReadOnlyList<InstalledPackage> LastInChroot { get; internal set; }
+        public IReadOnlyList<InstalledPackage> Sandbox { get; private set; }
 
-        public DateTimeOffset? LastCache { get; internal set; }
+        public DateTimeOffset? LastUpdate { get; private set; }
 
         private async Task<List<InstalledPackage>> GetInstalledPackagesAsyncCore(string a, string b)
         {
-            var results = await _systemInfo.RunAsync(a, b, 10000);
+            var results = await _systemInfo.RunAsync(a, b, 20000, true);
             var lines = results.Split('\n');
             var ans = new List<InstalledPackage>();
-            foreach (var line in lines)
+            foreach (var line in lines.Skip(1))
             {
                 // "acpid/bionic,now 1:2.0.28-1ubuntu1 amd64 [installed]"
                 var items = line.Trim().Split(' ');
                 if (items.Length != 4) continue;
                 var pkg = items[0].Split(new[] { '/' }, 2);
-                if (pkg.Length != 4) continue;
+                if (pkg.Length != 2) continue;
 
                 ans.Add(new InstalledPackage
                 {
@@ -114,16 +101,16 @@ namespace JetHub.Services
 
                 try
                 {
-                    Last = await GetInstalledPackagesAsync();
-                    LastInChroot = await GetInstalledPackagesInChrootAsync();
-                    LastCache = DateTimeOffset.Now;
+                    Global = await GetInstalledPackagesAsync();
+                    Sandbox = await GetInstalledPackagesInChrootAsync();
+                    LastUpdate = DateTimeOffset.Now;
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "An error occurred during read apt...");
-                    Last ??= Array.Empty<InstalledPackage>();
-                    LastInChroot ??= Array.Empty<InstalledPackage>();
-                    LastCache = null;
+                    Global ??= Array.Empty<InstalledPackage>();
+                    Sandbox ??= Array.Empty<InstalledPackage>();
+                    LastUpdate = null;
                 }
 
                 var nextExecuteTime = now - now.TimeOfDay + TimeSpan.FromHours(3);

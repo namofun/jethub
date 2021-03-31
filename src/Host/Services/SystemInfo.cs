@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace JetHub.Services
@@ -26,7 +27,7 @@ namespace JetHub.Services
 
         Task<(string CommitId, string Branch)> GetJudgehostVersionInfoAsync();
 
-        Task<string> RunAsync(string fileName, string cmdline, int timeOut);
+        Task<string> RunAsync(string fileName, string cmdline, int timeout, bool massiveOutput = false);
     }
 
     public class FakeSystemInfo : ISystemInfo
@@ -82,7 +83,7 @@ namespace JetHub.Services
             return Task.FromResult(("abcdefg", "master"));
         }
 
-        public Task<string> RunAsync(string fileName, string cmdline, int timeOut)
+        public Task<string> RunAsync(string fileName, string cmdline, int timeout, bool massiveOutput)
         {
             throw new NotSupportedException();
         }
@@ -147,7 +148,7 @@ namespace JetHub.Services
             return "/opt/domjudge/judgehost/judgings";
         }
 
-        public Task<string> RunAsync(string fileName, string cmdline, int timeOut)
+        public Task<string> RunAsync(string fileName, string cmdline, int timeout, bool massiveOutput)
         {
             var tcs = new TaskCompletionSource<string>();
 
@@ -157,12 +158,15 @@ namespace JetHub.Services
                     "Starting {args}...",
                     fileName + " " + cmdline);
 
+                var stopWatch = new Stopwatch();
+                stopWatch.Start();
                 using var proc = Process.Start(
                     new ProcessStartInfo(fileName, cmdline)
                     {
                         RedirectStandardInput = true,
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
+                        Environment = { ["LANG"] = "en-US" },
                     });
 
                 if (proc == null)
@@ -174,8 +178,19 @@ namespace JetHub.Services
                     return;
                 }
 
+                StringBuilder stdout = null, stderr = null;
+                if (massiveOutput)
+                {
+                    stdout = new StringBuilder();
+                    stderr = new StringBuilder();
+                    proc.OutputDataReceived += (sender, args) => stdout.AppendLine(args.Data);
+                    proc.ErrorDataReceived += (sender, args) => stderr.AppendLine(args.Data);
+                    proc.BeginOutputReadLine();
+                    proc.BeginErrorReadLine();
+                }
+
                 proc.StandardInput.Close();
-                if (!proc.WaitForExit(timeOut))
+                if (!proc.WaitForExit(timeout))
                 {
                     proc.Kill(true);
                     _logger.LogError(
@@ -185,14 +200,21 @@ namespace JetHub.Services
                 }
                 else
                 {
-                    tcs.SetResult(proc.StandardOutput.ReadToEnd());
-                    var stderr = proc.StandardError.ReadToEnd().Trim();
-                    if (!string.IsNullOrWhiteSpace(stderr))
+                    stopWatch.Stop();
+                    tcs.SetResult(massiveOutput ? stdout.ToString().Trim() : proc.StandardOutput.ReadToEnd().Trim());
+
+                    _logger.LogInformation(
+                        "Process \"{args}\" finished in {elapsed}ms.",
+                        fileName + " " + cmdline,
+                        stopWatch.ElapsedMilliseconds);
+
+                    var stderrFinal = massiveOutput ? stderr.ToString().Trim() : proc.StandardOutput.ReadToEnd().Trim();
+                    if ( !string.IsNullOrWhiteSpace(stderrFinal))
                     {
                         _logger.LogInformation(
                             "Process \"{args}\" with stderr:\r\n{stderr}",
                             fileName + " " + cmdline,
-                            stderr);
+                            stderrFinal);
                     }
                 }
             });
