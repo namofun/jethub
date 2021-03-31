@@ -1,10 +1,10 @@
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
 
 namespace JetHub.Services
 {
@@ -13,12 +13,14 @@ namespace JetHub.Services
         string KernelVersion { get; }
 
         string BootCmdline { get; }
-        
+
         string VfsRoot { get; }
-        
+
+        string SecretFile { get; }
+
         List<(string CpuName, int Core, int Processor)> CpuInfo { get; }
     }
-    
+
     public class FakeGlobalInfo : IGlobalInfo
     {
         public string KernelVersion { get; } =
@@ -48,11 +50,14 @@ namespace JetHub.Services
                 ("Intel(R) Xeon(R) CPU E5-2682 v4 @ 2.50GHz", 2, 4),
             };
 
+        public string SecretFile { get; }
+
         public FakeGlobalInfo()
         {
             var playground = Path.Combine(Environment.CurrentDirectory, "playground");
             if (!Directory.Exists(playground)) Directory.CreateDirectory(playground);
             VfsRoot = playground;
+            SecretFile = Path.Combine(VfsRoot, "a.txt");
         }
     }
 
@@ -64,13 +69,15 @@ namespace JetHub.Services
 
         public string VfsRoot { get; } = "/opt/domjudge/judgehost/judgings";
 
+        public string SecretFile { get; } = "/opt/domjudge/judgehost/etc/restapi.secret";
+
         public List<(string CpuName, int Core, int Processor)> CpuInfo { get; private set; } = new List<(string, int, int)>();
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             KernelVersion = await File.ReadAllTextAsync("/proc/version", cancellationToken);
             BootCmdline = await File.ReadAllTextAsync("/proc/cmdline", cancellationToken);
-            
+
             /*
 processor	: 3
 vendor_id	: GenuineIntel

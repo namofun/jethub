@@ -14,17 +14,19 @@
         </a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" href="#">
+        <a class="nav-link" href="/secrets">
             <i class="fas fa-key fa-fw"></i>
             Secrets
         </a>
     </li>
+    <!--
     <li class="nav-item">
         <a class="nav-link" href="#">
             <i class="fas fa-terminal fa-fw"></i>
             Terminal
         </a>
     </li>
+    -->
 </ul>
 
 @foreach (var (svc, jhn) in Storage.Judgehosts)
@@ -34,12 +36,14 @@
     </h6>
 
     <ul class="nav flex-column mb-2">
+        <!--
         <li class="nav-item">
             <a class="nav-link" href="#">
                 <i class="fas fa-poll-h fa-fw"></i>
                 Log stream
             </a>
         </li>
+        -->
         <li class="nav-item">
             <a class="nav-link" href="/judgings/@jhn">
                 <i class="fas fa-folder-open fa-fw"></i>
