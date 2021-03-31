@@ -44,7 +44,9 @@ namespace JetHub
             if (System.Environment.OSVersion.Platform == PlatformID.Unix)
             {
                 services.AddSingleton<ISystemInfo, ProcfsSystemInfo>();
-                services.AddSingleton<IPackageService, AptPackageService>();
+                services.AddSingleton<AptPackageService>();
+                services.AddSingleton<IPackageService>(sp => sp.GetRequiredService<AptPackageService>());
+                services.AddSingleton<IHostedService>(sp => sp.GetRequiredService<AptPackageService>());
             }
             else
             {

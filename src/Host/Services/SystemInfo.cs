@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -107,6 +108,13 @@ namespace JetHub.Services
 
     public class ProcfsSystemInfo : ISystemInfo
     {
+        private readonly ILogger<ProcfsSystemInfo> _logger;
+
+        public ProcfsSystemInfo(ILogger<ProcfsSystemInfo> logger)
+        {
+            _logger = logger;
+        }
+
         public Task<string> GetCmdlineAsync()
         {
             return File.ReadAllTextAsync("/proc/cmdline");
@@ -175,6 +183,7 @@ namespace JetHub.Services
 
                 if (proc == null)
                 {
+                    _logger.LogError("Process start failed with \"{args}\"...", fileName + " " + cmdline);
                     tcs.SetException(new NotSupportedException("Process start failed."));
                     return;
                 }
@@ -183,11 +192,14 @@ namespace JetHub.Services
                 if (!proc.WaitForExit(timeOut))
                 {
                     proc.Kill(true);
+                    _logger.LogError("Process \"{args}\" running out of time, killing.", fileName + " " + cmdline);
                     tcs.SetException(new TimeoutException());
                 }
                 else
                 {
                     tcs.SetResult(proc.StandardOutput.ReadToEnd());
+                    var stderr = proc.StandardError.ReadToEnd().Trim();
+                    _logger.LogInformation("Process \"{args}\" with stderr:\r\n{stderr}", fileName + " " + cmdline, stderr);
                 }
             });
 

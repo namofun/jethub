@@ -1,6 +1,9 @@
 ﻿using JetHub.Models;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace JetHub.Services
@@ -48,13 +51,17 @@ namespace JetHub.Services
         }
     }
 
-    public class AptPackageService : IPackageService
+    public class AptPackageService : BackgroundService, IPackageService
     {
         private readonly ISystemInfo _systemInfo;
+        private readonly ILogger<AptPackageService> _logger;
 
-        public AptPackageService(ISystemInfo systemInfo)
+        public AptPackageService(ISystemInfo systemInfo, ILogger<AptPackageService> logger)
         {
             _systemInfo = systemInfo;
+            Last = Array.Empty<InstalledPackage>();
+            LastInChroot = Array.Empty<InstalledPackage>();
+            _logger = logger;
         }
 
         public IReadOnlyList<InstalledPackage> Last { get; internal set; }
@@ -73,13 +80,13 @@ namespace JetHub.Services
                 // "acpid/bionic,now 1:2.0.28-1ubuntu1 amd64 [installed]"
                 var items = line.Trim().Split(' ');
                 if (items.Length != 4) continue;
-                var a = items[0].Split(new[] { '/' }, 2);
-                if (a.Length != 4) continue;
+                var pkg = items[0].Split(new[] { '/' }, 2);
+                if (pkg.Length != 4) continue;
 
                 ans.Add(new InstalledPackage
                 {
-                    Name = a[0],
-                    Attach = a[1],
+                    Name = pkg[0],
+                    Attach = pkg[1],
                     Version = items[1],
                     Architect = items[2],
                     Status = items[3].TrimStart('[').TrimEnd(']').Split(',')
@@ -97,6 +104,34 @@ namespace JetHub.Services
         public Task<List<InstalledPackage>> GetInstalledPackagesInChrootAsync()
         {
             return GetInstalledPackagesAsyncCore("chroot", "/chroot/domjudge/ apt list --installed");
+        }
+
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                var now = DateTimeOffset.Now;
+
+                try
+                {
+                    Last = await GetInstalledPackagesAsync();
+                    LastInChroot = await GetInstalledPackagesInChrootAsync();
+                    LastCache = DateTimeOffset.Now;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "An error occurred during read apt...");
+                    Last ??= Array.Empty<InstalledPackage>();
+                    LastInChroot ??= Array.Empty<InstalledPackage>();
+                    LastCache = null;
+                }
+
+                var nextExecuteTime = now - now.TimeOfDay + TimeSpan.FromHours(3);
+                if (nextExecuteTime < now) nextExecuteTime = nextExecuteTime.AddDays(1);
+                var executeSpan = nextExecuteTime - now;
+
+                await Task.Delay(executeSpan, stoppingToken);
+            }
         }
     }
 }
