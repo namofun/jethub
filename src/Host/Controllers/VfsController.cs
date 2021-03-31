@@ -16,8 +16,8 @@ namespace JetHub.Controllers
     {
         internal string GetLocalFilePath(string path)
         {
-            var sysInfo = HttpContext.RequestServices.GetRequiredService<ISystemInfo>();
-            string result = sysInfo.GetVfsRoot();
+            var sysInfo = HttpContext.RequestServices.GetRequiredService<IGlobalInfo>();
+            string result = sysInfo.VfsRoot;
 
             if (!string.IsNullOrEmpty(path))
             {

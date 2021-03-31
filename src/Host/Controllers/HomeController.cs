@@ -18,10 +18,7 @@ namespace JetHub.Controllers
             {
                 LoadAverage = await systemInfo.GetLoadavgAsync(),
                 Uptime = await systemInfo.GetUptimeAsync(),
-                Cmdline = await systemInfo.GetCmdlineAsync(),
-                Kernel = await systemInfo.GetVersionAsync(),
                 Judgehosts = new List<string>(), // await systemInfo.GetRunningServicesAsync(),
-                Processors = new Dictionary<string, int>(), // await systemInfo.GetProcessorsAsync(),
                 JudgehostCommitId = judgehostVersion.CommitId,
                 JudgehostBranch = judgehostVersion.Branch,
             });

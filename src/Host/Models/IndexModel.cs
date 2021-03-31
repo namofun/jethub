@@ -9,12 +9,6 @@ namespace JetHub.Models
 
         public string LoadAverage { get; set; }
 
-        public string Kernel { get; set; }
-
-        public string Cmdline { get; set; }
-
-        public Dictionary<string, int> Processors { get; set; }
-
         public List<string> Judgehosts { get; set; }
 
         public string JudgehostCommitId { get; set; }

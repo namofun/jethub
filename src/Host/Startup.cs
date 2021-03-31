@@ -52,12 +52,17 @@ namespace JetHub
                 services.AddSingleton<DfFreeStorageInfo>();
                 services.AddSingleton<IStorageInfo>(sp => sp.GetRequiredService<DfFreeStorageInfo>());
                 services.AddSingleton<IHostedService>(sp => sp.GetRequiredService<DfFreeStorageInfo>());
+
+                services.AddSingleton<OneShotGlobalInfo>();
+                services.AddSingleton<IGlobalInfo>(sp => sp.GetRequiredService<OneShotGlobalInfo>());
+                services.AddSingleton<IHostedService>(sp => sp.GetRequiredService<OneShotGlobalInfo>());
             }
             else
             {
                 services.AddSingleton<ISystemInfo, FakeSystemInfo>();
                 services.AddSingleton<IPackageService, FakePackageService>();
                 services.AddSingleton<IStorageInfo, FakeStorageInfo>();
+                services.AddSingleton<IGlobalInfo, FakeGlobalInfo>();
             }
         }
 
@@ -95,8 +100,8 @@ namespace JetHub
                             FileProvider =
                                 new PhysicalFileProvider(
                                     endpoints.ServiceProvider
-                                        .GetRequiredService<ISystemInfo>()
-                                        .GetVfsRoot())
+                                        .GetRequiredService<IGlobalInfo>()
+                                        .VfsRoot)
                         })
                         .Use((context, _) =>
                         {
