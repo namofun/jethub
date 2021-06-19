@@ -40,6 +40,7 @@ namespace JetHub
             });
 
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<GlobalOptions>>().Value);
+            services.AddSignalR();
 
             if (System.Environment.OSVersion.Platform == PlatformID.Unix)
             {
@@ -83,6 +84,8 @@ namespace JetHub
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+
+                endpoints.MapHub<LogHub>("/api/log-stream");
 
                 endpoints.Map(
                     "/judgings/{**slug}",

@@ -1,0 +1,47 @@
+﻿@model string
+
+<h1 class="mt-3">Log Streams</h1>
+
+<p>Judgehost <code>@Model</code></p>
+
+<style>
+    #logs {
+        font-weight: 700;
+        font-family: monospace;
+        padding: 1em;
+        padding-left: 2em;
+        background: black;
+        color: #fff;
+        border-radius: 0.5em;
+    }
+</style>
+
+<ul id="logs">
+    <li class="text-primary">Loading logs...</li>
+</ul>
+
+<script src="~/lib/signalr/signalr.min.js"></script>
+
+<script>
+    "use strict";
+
+    var connection = new signalR.HubConnectionBuilder().withUrl("/api/log-stream?host=@(Html.UrlEncoder.Encode(Model))").build();
+
+    function addLog(logContent) {
+        var li = document.createElement("li");
+        document.getElementById("logs").appendChild(li);
+        li.textContent = `${logContent}`;
+        return li;
+    }
+
+    connection.on("ReceiveLog", (logs) => logs.forEach(addLog));
+    connection.on("Exit", () => connection.stop());
+    connection.onclose(_ => addLog('Connection closed.').classList.add("text-warning"));
+
+    connection.start().then(function () {
+        addLog('Connection established.').classList.add("text-success");
+    }).catch(function (err) {
+        addLog('Connection failed: ' + err.toString()).classList.add("text-danger");
+        return console.error(err.toString());
+    });
+</script>

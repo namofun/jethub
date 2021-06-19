@@ -31,6 +31,15 @@ namespace JetHub.Controllers
         }
 
 
+        [HttpGet("/logs/{host}")]
+        public IActionResult LogStream(string host, [FromServices] IStorageInfo storage)
+        {
+            var jh = storage.Judgehosts.Select(j => j.JudgehostName).FirstOrDefault(host.Equals);
+            if (jh == null) return NotFound();
+            return View((object)jh);
+        }
+
+
         [HttpGet("/jsonviewer")]
         public IActionResult JsonViewer(string view_url)
         {

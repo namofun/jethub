@@ -36,16 +36,14 @@
     </h6>
 
     <ul class="nav flex-column mb-2">
-        <!--
         <li class="nav-item">
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="/logs/@Html.UrlEncoder.Encode(jhn)">
                 <i class="fas fa-poll-h fa-fw"></i>
                 Log stream
             </a>
         </li>
-        -->
         <li class="nav-item">
-            <a class="nav-link" href="/judgings/@jhn">
+            <a class="nav-link" href="/judgings/@Html.UrlEncoder.Encode(jhn)">
                 <i class="fas fa-folder-open fa-fw"></i>
                 Judging files
             </a>
