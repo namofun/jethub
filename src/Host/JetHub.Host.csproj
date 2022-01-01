@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>JetHub</RootNamespace>
     <UserSecretsId>f9f8f9c1-7623-4a6b-9433-b7e2f0a09f2b</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="SatelliteSite.Abstraction" Version="$(SubstrateVersion)" />
-    <PackageReference Include="SatelliteSite.StaticWebAssets.Basic" Version="$(StaticAssetsVersion)" />
+    <PackageReference Include="SatelliteSite.StaticWebAssets.Basic" Version="1.1.1" />
     <PackageReference Include="SatelliteSite.StaticWebAssets.JsonViewer" Version="18.5.13" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="$(AspNetCoreVersion)" Condition="'$(Configuration)' != 'Release'" />
     <PackageReference Include="System.IO.Abstractions" Version="13.2.28" />
