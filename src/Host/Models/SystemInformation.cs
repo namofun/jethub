@@ -6,15 +6,15 @@ namespace JetHub.Models
     {
         public TimeSpan Uptime { get; set; }
 
-        public ulong[] LoadAverages { get; set; }
+        public double[] LoadAverages { get; set; }
 
-        public ulong TotalMemory { get; set; }
+        public ulong TotalMemoryBytes { get; set; }
 
-        public ulong UsedMemory { get; set; }
+        public ulong UsedMemoryBytes { get; set; }
 
-        public ulong TotalSwap { get; set; }
+        public ulong TotalSwapBytes { get; set; }
 
-        public ulong UsedSwap { get; set; }
+        public ulong UsedSwapBytes { get; set; }
 
         public ushort ProcessCount { get; set; }
     }

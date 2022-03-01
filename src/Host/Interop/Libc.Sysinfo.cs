@@ -1,10 +1,29 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace JetHub.Interop
 {
     public partial class Libc
     {
         private const string libc_so_6 = @"/lib/x86_64-linux-gnu/libc.so.6";
+        private const int FSHIFT = 11;
+        private const int FIXED_1 = 1 << FSHIFT;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ulong LOAD_INT(ulong x) => x >> FSHIFT;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ulong LOAD_FRAC(ulong x) => LOAD_INT((x & (FIXED_1 - 1)) * 100);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static double sysinfo_loads_to100(ulong x)
+            => LOAD_INT((x >> 5) + (FIXED_1 / 200))
+            + LOAD_FRAC((x >> 5) + (FIXED_1 / 200)) / 100.0;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static double[] sysinfo_loads_to100(ulong[] x)
+            => x.Select(sysinfo_loads_to100).ToArray();
 
         [DllImport(libc_so_6)]
         public static extern int sysinfo(out sysinfo_t info);

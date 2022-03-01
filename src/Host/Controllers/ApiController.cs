@@ -1,10 +1,20 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using JetHub.Models;
+using JetHub.Services;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace JetHub.Controllers
 {
     [Route("/api/[action]")]
     public class ApiController : ControllerBase
     {
+        [HttpGet]
+        public Task<SystemInformation> Sysinfo(
+            [FromServices] IHostSystem hostSystem)
+        {
+            return hostSystem.GetSystemInformationAsync();
+        }
+
         [HttpGet]
         public IActionResult Test()
         {

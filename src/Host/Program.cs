@@ -1,4 +1,3 @@
-using JetHub.Models;
 using JetHub.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -8,8 +7,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using System;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text.Json;
 
 namespace JetHub
 {
@@ -17,22 +14,6 @@ namespace JetHub
     {
         public static void Main(string[] args)
         {
-            if (Environment.Is64BitOperatingSystem && Environment.OSVersion.Platform == PlatformID.Unix)
-            {
-                Console.WriteLine(Marshal.SizeOf<Interop.Libc.sysinfo_t>());
-                Interop.Libc.sysinfo(out var sysinfo);
-                Console.WriteLine(JsonSerializer.Serialize(new SystemInformation
-                {
-                    UsedSwap = sysinfo.totalswap - sysinfo.freeswap,
-                    UsedMemory = sysinfo.totalram - sysinfo.freeram,
-                    Uptime = TimeSpan.FromSeconds(sysinfo.uptime),
-                    TotalSwap = sysinfo.totalswap,
-                    TotalMemory = sysinfo.totalram,
-                    LoadAverages = sysinfo.loads,
-                    ProcessCount = sysinfo.procs,
-                }));
-            }
-
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddControllersWithViews();
@@ -52,6 +33,7 @@ namespace JetHub
 
             if (Environment.OSVersion.Platform == PlatformID.Unix)
             {
+                builder.Services.AddSingleton<IHostSystem, LinuxSystem>();
                 builder.Services.AddSingleton<ISystemInfo, ProcfsSystemInfo>();
 
                 builder.Services.AddSingleton<AptPackageService>();
@@ -68,6 +50,7 @@ namespace JetHub
             }
             else
             {
+                builder.Services.AddSingleton<IHostSystem, FakeSystem>();
                 builder.Services.AddSingleton<ISystemInfo, FakeSystemInfo>();
                 builder.Services.AddSingleton<IPackageService, FakePackageService>();
                 builder.Services.AddSingleton<IStorageInfo, FakeStorageInfo>();
