@@ -60,25 +60,9 @@ namespace JetHub.Services
         {
             try
             {
-                /*
-              total        used        free      shared  buff/cache   available
-Mem:        8033768     5655212      438912      538512     1939644     1555132
-Swap:       2097148       81152     2015996
-                */
-                var free = await _systemInfo.RunAsync("free", "-k", 500);
-                var content = free.Trim().Split('\n');
-                if (content.Length == 3)
-                {
-                    var swap_line = content[2];
-                    var swap = swap_line.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
-                    if (swap.Length != 4) throw new Exception("Unknown free output.");
-                    Swap = (int.Parse(swap[2]) / 1024.0, int.Parse(swap[1]) / 1024.0);
-
-                    var mem_line = content[1];
-                    var mem = mem_line.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
-                    if (mem.Length != 7) throw new Exception("Unknown free output.");
-                    Memory = (int.Parse(mem[2]) / 1024.0, int.Parse(mem[1]) / 1024.0);
-                }
+                var usage = await _systemInfo.GetMemoryUsageAsync();
+                Memory = (usage.MemoryUsed / 1024.0, usage.MemoryTotal / 1024.0);
+                Swap = (usage.SwapUsed / 1024.0, usage.SwapTotal / 1024.0);
             }
             catch (Exception e)
             {
