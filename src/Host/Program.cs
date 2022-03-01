@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using System;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace JetHub
 {
@@ -14,6 +15,11 @@ namespace JetHub
     {
         public static void Main(string[] args)
         {
+            if (Environment.Is64BitOperatingSystem && Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                Console.WriteLine(Marshal.SizeOf<Interop.Libc.sysinfo_t>());
+            }
+
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddControllersWithViews();
