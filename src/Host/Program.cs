@@ -1,3 +1,4 @@
+using JetHub.Models;
 using JetHub.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -8,6 +9,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 
 namespace JetHub
 {
@@ -18,6 +20,17 @@ namespace JetHub
             if (Environment.Is64BitOperatingSystem && Environment.OSVersion.Platform == PlatformID.Unix)
             {
                 Console.WriteLine(Marshal.SizeOf<Interop.Libc.sysinfo_t>());
+                Interop.Libc.sysinfo(out var sysinfo);
+                Console.WriteLine(JsonSerializer.Serialize(new SystemInformation
+                {
+                    UsedSwap = sysinfo.totalswap - sysinfo.freeswap,
+                    UsedMemory = sysinfo.totalram - sysinfo.freeram,
+                    Uptime = TimeSpan.FromSeconds(sysinfo.uptime),
+                    TotalSwap = sysinfo.totalswap,
+                    TotalMemory = sysinfo.totalram,
+                    LoadAverages = sysinfo.loads,
+                    ProcessCount = sysinfo.procs,
+                }));
             }
 
             var builder = WebApplication.CreateBuilder(args);

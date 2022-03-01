@@ -29,8 +29,8 @@ namespace JetHub.Interop
             public ulong freehigh;  /* Available high memory size */
             public uint mem_unit;   /* Memory unit size in bytes */
 
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 0)]
-            public char[] _f;       /* Padding: libc5 uses this.. */
+            // [MarshalAs(UnmanagedType.ByValArray, SizeConst = 0)]
+            // public char[] _f;       /* Padding: libc5 uses this.. */
         }
     }
 }
