@@ -15,7 +15,5 @@ namespace JetHub.Models
         public ulong TotalSwapBytes { get; set; }
 
         public ulong UsedSwapBytes { get; set; }
-
-        public ushort ProcessCount { get; set; }
     }
 }
