@@ -21,7 +21,7 @@ namespace JetHub.Controllers
             [FromQuery] bool isChroot,
             [FromServices] IHostSystem hostSystem)
         {
-            return hostSystem.GetInstalledPackagesAsync(isChroot ? "/" : "/chroot/domjudge/");
+            return hostSystem.GetInstalledPackagesAsync(isChroot ? "/chroot/domjudge/" : "/");
         }
 
         [HttpGet]
