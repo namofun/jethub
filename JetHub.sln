@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31112.23
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4CDD2A9D-3BB4-4D3F-B254-E03E2F4BC808}"
 	ProjectSection(SolutionItems) = preProject
@@ -9,6 +9,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JetHub.Host", "src\Host\JetHub.Host.csproj", "{C9A18B89-F16E-4530-B2BF-31D00AB3ED41}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JetHub.UnitTests", "test\JetHub.UnitTests\JetHub.UnitTests.csproj", "{558907EF-512D-4039-8A7E-EC3C437EECC6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,6 +22,10 @@ Global
 		{C9A18B89-F16E-4530-B2BF-31D00AB3ED41}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9A18B89-F16E-4530-B2BF-31D00AB3ED41}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C9A18B89-F16E-4530-B2BF-31D00AB3ED41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{558907EF-512D-4039-8A7E-EC3C437EECC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{558907EF-512D-4039-8A7E-EC3C437EECC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{558907EF-512D-4039-8A7E-EC3C437EECC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{558907EF-512D-4039-8A7E-EC3C437EECC6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
