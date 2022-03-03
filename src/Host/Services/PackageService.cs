@@ -3,7 +3,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,10 +25,8 @@ namespace JetHub.Services
                 new InstalledPackage
                 {
                     Name = "binutils",
-                    Attach = "bionic-security,bionic-updates,now",
                     Version = "2.30-21ubuntu1~18.04.5",
                     Architect = "amd64",
-                    Status = new List<string> { "installed", "automatic" },
                 }
             };
 
@@ -40,12 +37,12 @@ namespace JetHub.Services
 
     public class AptPackageService : BackgroundService, IPackageService
     {
-        private readonly ISystemInfo _systemInfo;
+        private readonly IHostSystem _hostSystem;
         private readonly ILogger<AptPackageService> _logger;
 
-        public AptPackageService(ISystemInfo systemInfo, ILogger<AptPackageService> logger)
+        public AptPackageService(IHostSystem hostSystem, ILogger<AptPackageService> logger)
         {
-            _systemInfo = systemInfo;
+            _hostSystem = hostSystem;
             Global = Array.Empty<InstalledPackage>();
             Sandbox = Array.Empty<InstalledPackage>();
             _logger = logger;
@@ -57,40 +54,14 @@ namespace JetHub.Services
 
         public DateTimeOffset? LastUpdate { get; private set; }
 
-        private async Task<List<InstalledPackage>> GetInstalledPackagesAsyncCore(string a, string b)
-        {
-            var results = await _systemInfo.RunAsync(a, b, 20000, true);
-            var lines = results.Split('\n');
-            var ans = new List<InstalledPackage>();
-            foreach (var line in lines.Skip(1))
-            {
-                // "acpid/bionic,now 1:2.0.28-1ubuntu1 amd64 [installed]"
-                var items = line.Trim().Split(' ');
-                if (items.Length != 4) continue;
-                var pkg = items[0].Split(new[] { '/' }, 2);
-                if (pkg.Length != 2) continue;
-
-                ans.Add(new InstalledPackage
-                {
-                    Name = pkg[0],
-                    Attach = pkg[1],
-                    Version = items[1],
-                    Architect = items[2],
-                    Status = items[3].TrimStart('[').TrimEnd(']').Split(',')
-                });
-            }
-
-            return ans;
-        }
-
         public Task<List<InstalledPackage>> GetInstalledPackagesAsync()
         {
-            return GetInstalledPackagesAsyncCore("apt", "list --installed");
+            return _hostSystem.GetInstalledPackagesAsync("/");
         }
 
         public Task<List<InstalledPackage>> GetInstalledPackagesInChrootAsync()
         {
-            return GetInstalledPackagesAsyncCore("chroot", "/chroot/domjudge/ apt list --installed");
+            return _hostSystem.GetInstalledPackagesAsync("/chroot/domjudge/");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -107,7 +78,7 @@ namespace JetHub.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "An error occurred during read apt...");
+                    _logger.LogError(ex, "An error occurred during read dpkg status...");
                     Global ??= Array.Empty<InstalledPackage>();
                     Sandbox ??= Array.Empty<InstalledPackage>();
                     LastUpdate = null;
