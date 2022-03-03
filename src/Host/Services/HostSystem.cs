@@ -57,6 +57,11 @@ namespace JetHub.Services
         public async Task<List<InstalledPackage>> GetInstalledPackagesAsync(string root = "/")
         {
             root += (root.EndsWith("/") ? "" : "/") + "var/lib/dpkg/status";
+            if (!File.Exists(root))
+            {
+                return new List<InstalledPackage>();
+            }
+
             return ParseDpkgStatus(await File.ReadAllLinesAsync(root));
         }
 
