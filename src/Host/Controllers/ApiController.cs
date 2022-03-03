@@ -1,6 +1,7 @@
 ﻿using JetHub.Models;
 using JetHub.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace JetHub.Controllers
@@ -13,6 +14,14 @@ namespace JetHub.Controllers
             [FromServices] IHostSystem hostSystem)
         {
             return hostSystem.GetSystemInformationAsync();
+        }
+
+        [HttpGet]
+        public Task<List<InstalledPackage>> Dpkg(
+            [FromQuery] bool isChroot,
+            [FromServices] IHostSystem hostSystem)
+        {
+            return hostSystem.GetInstalledPackagesAsync(isChroot ? "/" : "/chroot/domjudge/");
         }
 
         [HttpGet]

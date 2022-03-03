@@ -1,17 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System.Text.Json.Serialization;
 
 namespace JetHub.Models
 {
     public class InstalledPackage
     {
+        [JsonPropertyName("name")]
         public string Name { get; set; }
 
-        public string Attach { get; set; }
-
+        [JsonPropertyName("version")]
         public string Version { get; set; }
 
+        [JsonPropertyName("arch")]
         public string Architect { get; set; }
-
-        public IReadOnlyList<string> Status { get; set; }
     }
 }

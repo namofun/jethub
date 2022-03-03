@@ -11,8 +11,8 @@
         <thead>
             <tr role="row">
                 <th scope="col" class="sortable searchable" style="min-width:20em">name</th>
+                <th scope="col" class="sortable searchable">ver.</th>
                 <th scope="col" class="sortable searchable">arch.</th>
-                <th scope="col" class="sortable searchable">status</th>
             </tr>
         </thead>
         <tbody>
@@ -20,8 +20,8 @@
             {
                 <tr>
                     <td>@item.Name</td>
+                    <td>@item.Version</td>
                     <td>@item.Architect</td>
-                    <td>@string.Join(',', item.Status.Where(a => a != "installed"))</td>
                 </tr>
             }
         </tbody>
@@ -35,8 +35,8 @@
         <thead>
             <tr role="row">
                 <th scope="col" class="sortable searchable" style="min-width:20em">name</th>
+                <th scope="col" class="sortable searchable">ver.</th>
                 <th scope="col" class="sortable searchable">arch.</th>
-                <th scope="col" class="sortable searchable">status</th>
             </tr>
         </thead>
         <tbody>
@@ -44,8 +44,8 @@
             {
                 <tr>
                     <td>@item.Name</td>
+                    <td>@item.Version</td>
                     <td>@item.Architect</td>
-                    <td>@string.Join(',', item.Status.Where(a => a != "installed"))</td>
                 </tr>
             }
         </tbody>
