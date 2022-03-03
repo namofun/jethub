@@ -56,20 +56,6 @@ namespace JetHub.Services
             Judgehosts = new List<(string ServiceName, string JudgehostName)>();
         }
 
-        private async Task UpdateMemoryCore()
-        {
-            try
-            {
-                var usage = await _systemInfo.GetMemoryUsageAsync();
-                Memory = (usage.MemoryUsed / 1024.0, usage.MemoryTotal / 1024.0);
-                Swap = (usage.SwapUsed / 1024.0, usage.SwapTotal / 1024.0);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "An error occurred during updating memory information.");
-            }
-        }
-
         private async Task UpdateHardDriveCore()
         {
             try
@@ -130,7 +116,6 @@ tmpfs                785     1       785   1% /run/user/1000
             int i = 0;
             while (!stoppingToken.IsCancellationRequested)
             {
-                await UpdateMemoryCore();
                 if (i == 0) await UpdateHardDriveCore();
                 if (i == 0) await UpdateJudgehostsCore();
                 i++; if (i == 10) i = 0; // update hdd per 5min
