@@ -102,7 +102,7 @@ namespace JetHub.Services
             {
                 while (Interop.Libc.getmntent(mtab) is Interop.Libc.mntent_t mnt)
                 {
-                    DriveType type = Interop.Libc.GetDriveType(mnt.mnt_fsname);
+                    DriveType type = Interop.Libc.GetDriveType(mnt.mnt_type);
                     if (!fixedOnly || type == DriveType.Fixed)
                     {
                         Interop.Libc.statvfs(mnt.mnt_dir, out Interop.Libc.statvfs_t vfs);
@@ -113,7 +113,7 @@ namespace JetHub.Services
                             Type = mnt.mnt_type,
                             Category = type,
                             TotalSizeBytes = vfs.f_bsize * vfs.f_blocks,
-                            UsedSizeBytes = (vfs.f_bsize - vfs.f_bavail) * vfs.f_blocks,
+                            UsedSizeBytes = (vfs.f_blocks - vfs.f_bavail) * vfs.f_bsize,
                         });
                     }
                 }
