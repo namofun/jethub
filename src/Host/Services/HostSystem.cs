@@ -123,6 +123,7 @@ namespace JetHub.Services
                 Interop.Libc.endmntent(mtab);
             }
 
+            drives.RemoveAll(d => d.TotalSizeBytes == 0);
             return Task.FromResult(drives);
         }
 
