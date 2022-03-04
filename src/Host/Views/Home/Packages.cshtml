@@ -1,8 +1,6 @@
-﻿@inject IPackageService Packages
+﻿@inject IHostSystem HostSystem
 
 <h1 class="mt-3">Packages</h1>
-
-<p>Last update: @(Packages.LastUpdate?.ToString() ?? "N/A")</p>
 
 <h4>HOST @@ /</h4>
 
@@ -16,7 +14,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Packages.Global ?? Enumerable.Empty<InstalledPackage>())
+            @foreach (var item in (await HostSystem.GetInstalledPackagesAsync()) ?? Enumerable.Empty<InstalledPackage>())
             {
                 <tr>
                     <td>@item.Name</td>
@@ -40,7 +38,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Packages.Sandbox ?? Enumerable.Empty<InstalledPackage>())
+            @foreach (var item in (await HostSystem.GetInstalledPackagesAsync("/chroot/domjudge/")) ?? Enumerable.Empty<InstalledPackage>())
             {
                 <tr>
                     <td>@item.Name</td>

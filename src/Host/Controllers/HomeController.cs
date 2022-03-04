@@ -15,12 +15,12 @@ namespace JetHub.Controllers
             [FromServices] IHostSystem hostSystem)
         {
             var judgehostVersion = await systemInfo.GetJudgehostVersionInfoAsync();
-            var v2api = await hostSystem.GetSystemInformationAsync();
 
             return View(new IndexModel
             {
-                LoadAverage = string.Join(", ", v2api.LoadAverages.Select(l => $"{l:F2}")),
-                Uptime = v2api.Uptime,
+                System = await hostSystem.GetSystemInformationAsync(),
+                Kernel = await hostSystem.GetKernelInformationAsync(),
+                Cpus = await hostSystem.GetCpuInformationAsync(),
                 JudgehostCommitId = judgehostVersion.CommitId,
                 JudgehostBranch = judgehostVersion.Branch,
             });

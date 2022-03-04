@@ -11,10 +11,6 @@ namespace JetHub.Services
 {
     public interface IStorageInfo
     {
-        (double Used, double Total) Memory { get; }
-
-        (double Used, double Total) Swap { get; }
-
         IReadOnlyDictionary<string, (string Type, double Used, double Total)> HardDrive { get; }
 
         IReadOnlyList<(string ServiceName, string JudgehostName)> Judgehosts { get; }
@@ -22,10 +18,6 @@ namespace JetHub.Services
 
     public class FakeStorageInfo : IStorageInfo
     {
-        public (double Used, double Total) Memory { get; } = (118.0, 2048.0);
-
-        public (double Used, double Total) Swap { get; } = (0.0, 973.0);
-
         public IReadOnlyDictionary<string, (string Type, double Used, double Total)> HardDrive { get; }
             = new Dictionary<string, (string Type, double Used, double Total)>
             {
@@ -123,10 +115,6 @@ tmpfs                785     1       785   1% /run/user/1000
             }
         }
 
-        public (double Used, double Total) Memory { get; private set; }
-        
-        public (double Used, double Total) Swap { get; private set; }
-        
         public IReadOnlyDictionary<string, (string Type, double Used, double Total)> HardDrive { get; private set; }
 
         public IReadOnlyList<(string ServiceName, string JudgehostName)> Judgehosts { get; private set; }

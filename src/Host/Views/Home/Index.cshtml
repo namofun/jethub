@@ -1,6 +1,5 @@
 ﻿@model IndexModel
 @inject IStorageInfo Storage
-@inject IGlobalInfo Global2
 
 <div class="mt-4 mb-4">
     <div class="jumbotron mb-0" style="background-color: #f4f5f7; padding-top: 30px; padding-bottom: 30px">
@@ -9,9 +8,9 @@
         </div>
         <p>
             <small>
-                Uptime: <i class="fas fa-circle" style="color: #26C281; font-size: x-small; margin-right: 2px"></i>@(Model.Uptime)
+                Uptime: <i class="fas fa-circle" style="color: #26C281; font-size: x-small; margin-right: 2px"></i>@(Model.System.Uptime)
                 |
-                Load average: @Model.LoadAverage
+                Load average: @string.Join(", ", Model.System.LoadAverages.Select(s => $"{s:F2}"))
             </small>
         </p>
 
@@ -37,9 +36,11 @@
     <div class="col-lg-4">
         <div class="card border-0 p-4 mb-3" style="background-color: #f4f5f7;">
             <h6 class="font-weight-normal mb-3"><i class="fas fa-microchip"></i>&nbsp;Processor status</h6>
-            @foreach (var proc in Global2.CpuInfo)
+            @foreach (var proc in Model.Cpus.GroupBy(s => s.ModelName))
             {
-                <p class="mb-2"><i class="fas fa-circle @(proc.Core < proc.Processor ? "text-warning" : "text-success")" title="@(proc.Core < proc.Processor ? $"{proc.Core} core and {proc.Processor} threads. Seems that hyper-threading is open, may lead to inaccurate results when judging float-calculation problems." : $"{proc.Core} core and {proc.Processor} threads. Seems that hyper-threading is disabled, which is good.")" style="font-size: x-small; margin-right: 2px"></i> [@(proc.Core)/@(proc.Processor)] @proc.CpuName</p>
+                int core = proc.Select(s => s.CoreId).Distinct().Count();
+                int processor = proc.Count();
+                <p class="mb-2"><i class="fas fa-circle @(core < processor ? "text-warning" : "text-success")" title="@(core < processor ? $"{core} core and {processor} threads. Seems that hyper-threading is open, may lead to inaccurate results when judging float-calculation problems." : $"{core} core and {processor} threads. Seems that hyper-threading is disabled, which is good.")" style="font-size: x-small; margin-right: 2px"></i> [@(core)/@(processor)] @proc.Key</p>
             }
             @foreach (var jh in Storage.Judgehosts)
             {
@@ -50,13 +51,13 @@
     <div class="col-lg-4">
         <div class="card border-0 p-4 mb-3" style="background-color: #f4f5f7;">
             <h6 class="font-weight-normal mb-3"><i class="fas fa-memory"></i>&nbsp;Storage status</h6>
-            <p class="mb-1"><i class="fas fa-circle text-success" style="color: #26C281; font-size: x-small; margin-right: 2px"></i> Memory: @((int)Storage.Memory.Used)MB / @((int)Storage.Memory.Total)MB</p>
+            <p class="mb-1"><i class="fas fa-circle text-success" style="color: #26C281; font-size: x-small; margin-right: 2px"></i> Memory: @(Model.System.UsedMemoryBytes >> 20)MB / @(Model.System.TotalMemoryBytes >> 20)MB</p>
             <div class="progress mb-3">
-                <div class="progress-bar" role="progressbar" style="width: @(Storage.Memory.Used * 100 / Storage.Memory.Total)%" aria-valuenow="@(Storage.Memory.Used * 100 / Storage.Memory.Total)" aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="progress-bar" role="progressbar" style="width: @(Model.System.UsedMemoryBytes * 100 / Model.System.TotalMemoryBytes)%" aria-valuenow="@(Model.System.UsedMemoryBytes * 100 / Model.System.TotalMemoryBytes)" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
-            <p class="mb-1"><i class="fas fa-circle text-success" style="font-size: x-small; margin-right: 2px"></i> Swap: @((int)Storage.Swap.Used)MB / @((int)Storage.Swap.Total)MB</p>
+            <p class="mb-1"><i class="fas fa-circle text-success" style="font-size: x-small; margin-right: 2px"></i> Swap: @(Model.System.UsedSwapBytes >> 20)MB / @(Model.System.TotalSwapBytes >> 20)MB</p>
             <div class="progress mb-3">
-                <div class="progress-bar" role="progressbar" style="width: @(Storage.Swap.Used * 100 / Storage.Swap.Total)%" aria-valuenow="@(Storage.Swap.Used * 100 / Storage.Swap.Total)" aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="progress-bar" role="progressbar" style="width: @(Model.System.TotalSwapBytes == 0 ? 0 : Model.System.UsedSwapBytes * 100 / Model.System.TotalSwapBytes)%" aria-valuenow="@(Model.System.TotalSwapBytes == 0 ? 0 : Model.System.UsedSwapBytes * 100 / Model.System.TotalSwapBytes)" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
             @foreach (var hdd in Storage.HardDrive)
             {
@@ -70,8 +71,8 @@
     <div class="col-lg-4">
         <div class="card border-0 p-4 mb-3" style="background-color: #f4f5f7;">
             <h6 class="font-weight-normal mb-3"><i class="fab fa-ubuntu"></i>&nbsp;Kernel status</h6>
-            <p class="mb-2"><i class="fas fa-circle text-primary" style="font-size: x-small; margin-right: 2px"></i> Kernel Version: <small>@Global2.KernelVersion</small></p>
-            <p class="mb-2"><i class="fas fa-circle @(Global2.BootCmdline.Contains("cgroup_enable=memory") && Global2.BootCmdline.Contains("swapaccount=1") ? "text-success" : "text-danger")" style="font-size: x-small; margin-right: 2px"></i> Boot Cmdline: <small>@Global2.BootCmdline</small></p>
+            <p class="mb-2"><i class="fas fa-circle text-primary" style="font-size: x-small; margin-right: 2px"></i> Kernel Version: <small>@Model.Kernel.Version</small></p>
+            <p class="mb-2"><i class="fas fa-circle @(Model.Kernel.Cmdline.Contains("cgroup_enable=memory") && Model.Kernel.Cmdline.Contains("swapaccount=1") ? "text-success" : "text-danger")" style="font-size: x-small; margin-right: 2px"></i> Boot Cmdline: <small>@Model.Kernel.Cmdline</small></p>
         </div>
     </div>
 </div>

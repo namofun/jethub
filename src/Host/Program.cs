@@ -36,23 +36,17 @@ namespace JetHub
                 builder.Services.AddSingleton<IHostSystem, LinuxSystem>();
                 builder.Services.AddSingleton<ISystemInfo, ProcfsSystemInfo>();
 
-                builder.Services.AddSingleton<AptPackageService>();
-                builder.Services.AddSingleton<IPackageService>(sp => sp.GetRequiredService<AptPackageService>());
-                builder.Services.AddSingleton<IHostedService>(sp => sp.GetRequiredService<AptPackageService>());
-
                 builder.Services.AddSingleton<DfFreeStorageInfo>();
                 builder.Services.AddSingleton<IStorageInfo>(sp => sp.GetRequiredService<DfFreeStorageInfo>());
                 builder.Services.AddSingleton<IHostedService>(sp => sp.GetRequiredService<DfFreeStorageInfo>());
 
                 builder.Services.AddSingleton<OneShotGlobalInfo>();
                 builder.Services.AddSingleton<IGlobalInfo>(sp => sp.GetRequiredService<OneShotGlobalInfo>());
-                builder.Services.AddSingleton<IHostedService>(sp => sp.GetRequiredService<OneShotGlobalInfo>());
             }
             else
             {
                 builder.Services.AddSingleton<IHostSystem, FakeSystem>();
                 builder.Services.AddSingleton<ISystemInfo, FakeSystemInfo>();
-                builder.Services.AddSingleton<IPackageService, FakePackageService>();
                 builder.Services.AddSingleton<IStorageInfo, FakeStorageInfo>();
                 builder.Services.AddSingleton<IGlobalInfo, FakeGlobalInfo>();
             }
