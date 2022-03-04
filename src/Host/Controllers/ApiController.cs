@@ -25,6 +25,20 @@ namespace JetHub.Controllers
         }
 
         [HttpGet]
+        public Task<List<CpuInformation>> Cpuinfo(
+            [FromServices] IHostSystem hostSystem)
+        {
+            return hostSystem.GetCpuInformationAsync();
+        }
+
+        [HttpGet]
+        public Task<KernelInformation> Kernel(
+            [FromServices] IHostSystem hostSystem)
+        {
+            return hostSystem.GetKernelInformationAsync();
+        }
+
+        [HttpGet]
         public IActionResult Test()
         {
             return Ok(new[]

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace JetHub.Services
@@ -11,6 +12,10 @@ namespace JetHub.Services
         Task<SystemInformation> GetSystemInformationAsync();
 
         Task<List<InstalledPackage>> GetInstalledPackagesAsync(string root = "/");
+
+        Task<List<CpuInformation>> GetCpuInformationAsync();
+
+        Task<KernelInformation> GetKernelInformationAsync();
     }
 
     public class LinuxSystem : IHostSystem
@@ -54,6 +59,33 @@ namespace JetHub.Services
             return installedPackages;
         }
 
+        public async Task<List<CpuInformation>> GetCpuInformationAsync()
+        {
+            List<CpuInformation> cpus = new();
+            string cpuinfo = await File.ReadAllTextAsync("/proc/cpuinfo");
+            string[] processors = cpuinfo.Trim().Split("\n\n");
+            foreach (string processor in processors)
+            {
+                Dictionary<string, string> properties =
+                    processor.Trim()
+                        .Split('\n')
+                        .Select(a => a.Split(new[] { ':' }, 2))
+                        .ToDictionary(k => k[0].Trim(), v => v[1].Trim());
+
+                cpus.Add(new CpuInformation()
+                {
+                    ModelName = properties["model name"],
+                    PhysicalId = int.Parse(properties["physical id"]),
+                    CoreId = int.Parse(properties["core id"]),
+                    ProcessorId = int.Parse(properties["processor"]),
+                    CacheSize = properties["cache size"],
+                    ClockSpeed = properties["cpu MHz"] + " MHz",
+                });
+            }
+
+            return cpus;
+        }
+
         public async Task<List<InstalledPackage>> GetInstalledPackagesAsync(string root = "/")
         {
             root += (root.EndsWith("/") ? "" : "/") + "var/lib/dpkg/status";
@@ -63,6 +95,15 @@ namespace JetHub.Services
             }
 
             return ParseDpkgStatus(await File.ReadAllLinesAsync(root));
+        }
+
+        public async Task<KernelInformation> GetKernelInformationAsync()
+        {
+            return new KernelInformation()
+            {
+                Cmdline = (await File.ReadAllTextAsync("/proc/cmdline")).Trim(),
+                Version = (await File.ReadAllTextAsync("/proc/version")).Trim(),
+            };
         }
 
         public async Task<SystemInformation> GetSystemInformationAsync()
@@ -92,6 +133,17 @@ namespace JetHub.Services
 
     public class FakeSystem : IHostSystem
     {
+        public Task<List<CpuInformation>> GetCpuInformationAsync()
+        {
+            return Task.FromResult(new List<CpuInformation>()
+            {
+                new CpuInformation { ModelName = "Intel(R) Xeon(R) CPU E5-2682 v4 @ 2.50GHz", ProcessorId = 0, CoreId = 0, PhysicalId = 0, ClockSpeed = "2500.000 MHz", CacheSize = "256 KB" },
+                new CpuInformation { ModelName = "Intel(R) Xeon(R) CPU E5-2682 v4 @ 2.50GHz", ProcessorId = 1, CoreId = 0, PhysicalId = 0, ClockSpeed = "2500.000 MHz", CacheSize = "256 KB" },
+                new CpuInformation { ModelName = "Intel(R) Xeon(R) CPU E5-2682 v4 @ 2.50GHz", ProcessorId = 2, CoreId = 1, PhysicalId = 0, ClockSpeed = "2500.000 MHz", CacheSize = "256 KB" },
+                new CpuInformation { ModelName = "Intel(R) Xeon(R) CPU E5-2682 v4 @ 2.50GHz", ProcessorId = 3, CoreId = 1, PhysicalId = 0, ClockSpeed = "2500.000 MHz", CacheSize = "256 KB" },
+            });
+        }
+
         public Task<List<InstalledPackage>> GetInstalledPackagesAsync(string root = "/")
         {
             return Task.FromResult(new List<InstalledPackage>()
@@ -102,6 +154,31 @@ namespace JetHub.Services
                     Version = "2.30-21ubuntu1~18.04.5",
                     Architect = "amd64",
                 }
+            });
+        }
+
+        public Task<KernelInformation> GetKernelInformationAsync()
+        {
+            return Task.FromResult(new KernelInformation()
+            {
+                Cmdline =
+                    "BOOT_IMAGE=/boot/vmlinuz-4.15.0-112-generic " +
+                    "root=UUID=00000000-0000-0000-0000-000000000000 " +
+                    "ro " +
+                    "vga=792 " +
+                    "console=tty0 " +
+                    "console=ttyS0,115200n8 " +
+                    "net.ifnames=0 " +
+                    "noibrs " +
+                    "quiet " +
+                    "splash " +
+                    "vt.handoff=1",
+
+                Version =
+                    "Linux version 4.15.0-112-generic " +
+                    "(buildd@lcy01-amd64-027) " +
+                    "(gcc version 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04)) " +
+                    "#113-Ubuntu SMP Thu Jul 9 23:41:39 UTC 2020",
             });
         }
 
