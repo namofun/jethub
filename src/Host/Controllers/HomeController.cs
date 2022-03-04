@@ -21,6 +21,7 @@ namespace JetHub.Controllers
                 System = await hostSystem.GetSystemInformationAsync(),
                 Kernel = await hostSystem.GetKernelInformationAsync(),
                 Cpus = await hostSystem.GetCpuInformationAsync(),
+                Drives = await hostSystem.GetDriveInformationAsync(),
                 JudgehostCommitId = judgehostVersion.CommitId,
                 JudgehostBranch = judgehostVersion.Branch,
             });

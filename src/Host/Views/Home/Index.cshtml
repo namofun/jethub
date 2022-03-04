@@ -59,11 +59,11 @@
             <div class="progress mb-3">
                 <div class="progress-bar" role="progressbar" style="width: @(Model.System.TotalSwapBytes == 0 ? 0 : Model.System.UsedSwapBytes * 100 / Model.System.TotalSwapBytes)%" aria-valuenow="@(Model.System.TotalSwapBytes == 0 ? 0 : Model.System.UsedSwapBytes * 100 / Model.System.TotalSwapBytes)" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
-            @foreach (var hdd in Storage.HardDrive)
+            @foreach (var hdd in Model.Drives)
             {
-                <p class="mb-1"><i class="fas fa-circle @(hdd.Value.Used + 2 < hdd.Value.Total ? "text-success" : hdd.Value.Used + 1 < hdd.Value.Total ? "text-warning" : "text-danger")" style="font-size: x-small; margin-right: 2px"></i> <span title="Mounted at @hdd.Value.Type">@hdd.Key</span>: @(hdd.Value.Used.ToString("F2"))GB / @(hdd.Value.Total.ToString("F2"))GB</p>
+                <p class="mb-1"><i class="fas fa-circle @((hdd.UsedSizeBytes + (2u << 30)) < hdd.TotalSizeBytes ? "text-success" : (hdd.UsedSizeBytes + (1u << 30)) < hdd.TotalSizeBytes ? "text-warning" : "text-danger")" style="font-size: x-small; margin-right: 2px"></i> <span title="Mounted at @hdd.MountPoint">@hdd.FileSystem</span>: @((hdd.UsedSizeBytes / 1024.0 / 1024 / 1024).ToString("F2"))GB / @((hdd.TotalSizeBytes / 1024.0 / 1024 / 1024).ToString("F2"))GB</p>
                 <div class="progress mb-3">
-                    <div class="progress-bar" role="progressbar" style="width: @(hdd.Value.Used * 100 / hdd.Value.Total)%" aria-valuenow="@(hdd.Value.Used * 100 / hdd.Value.Total)" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="progress-bar" role="progressbar" style="width: @(hdd.UsedSizeBytes * 100 / hdd.TotalSizeBytes)%" aria-valuenow="@(hdd.UsedSizeBytes * 100 / hdd.TotalSizeBytes)" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
             }
         </div>

@@ -1,9 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,20 +8,11 @@ namespace JetHub.Services
 {
     public interface IStorageInfo
     {
-        IReadOnlyDictionary<string, (string Type, double Used, double Total)> HardDrive { get; }
-
         IReadOnlyList<(string ServiceName, string JudgehostName)> Judgehosts { get; }
     }
 
     public class FakeStorageInfo : IStorageInfo
     {
-        public IReadOnlyDictionary<string, (string Type, double Used, double Total)> HardDrive { get; }
-            = new Dictionary<string, (string Type, double Used, double Total)>
-            {
-                ["/dev/vda1"] = ("/", 6.24, 20.0),
-                ["/dev/vda2"] = ("/boot/efi", 12.35, 20.0),
-            };
-
         public IReadOnlyList<(string ServiceName, string JudgehostName)> Judgehosts { get; }
             = new List<(string ServiceName, string JudgehostName)>
             {
@@ -37,55 +25,9 @@ namespace JetHub.Services
 
     public class DfFreeStorageInfo : BackgroundService, IStorageInfo
     {
-        private readonly ISystemInfo _systemInfo;
-        private readonly ILogger<DfFreeStorageInfo> _logger;
-
-        public DfFreeStorageInfo(ISystemInfo systemInfo, ILogger<DfFreeStorageInfo> logger)
+        public DfFreeStorageInfo()
         {
-            _systemInfo = systemInfo;
-            _logger = logger;
-            HardDrive = new Dictionary<string, (string Type, double Used, double Total)>();
             Judgehosts = new List<(string ServiceName, string JudgehostName)>();
-        }
-
-        private async Task UpdateHardDriveCore()
-        {
-            try
-            {
-                /*
-Filesystem     1M-blocks  Used Available Use% Mounted on
-udev                3899     0      3899   0% /dev
-tmpfs                785     4       782   1% /run
-/dev/nvme0n1p1    233706 84431    137336  39% /
-tmpfs               3923   104      3819   3% /dev/shm
-tmpfs                  5     1         5   1% /run/lock
-tmpfs               3923     0      3923   0% /sys/fs/cgroup
-/dev/loop2           162   162         0 100% /snap/gnome-3-28-1804/128
-/dev/loop1             1     1         0 100% /snap/gnome-logs/103
-/dev/loop4            98    98         0 100% /snap/core/10185
-/dev/loop5             3     3         0 100% /snap/gnome-system-monitor/148
-/dev/sda2             96    39        58  41% /boot/efi
-tmpfs                785     1       785   1% /run/user/121
-tmpfs                785     1       785   1% /run/user/1000
-                 */
-
-                var df = await _systemInfo.RunAsync("df", "-m", 1000);
-                var dfs = new Dictionary<string, (string Type, double Used, double Total)>();
-                foreach (var df_line in df.Trim().Split('\n').Skip(1))
-                {
-                    var mnt = df_line.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
-                    if (mnt.Length != 6) throw new Exception("Unknown df output.");
-                    if (!mnt[0].StartsWith('/')) continue; // tmpfs, cgroups, etc..
-                    if (mnt[0].StartsWith("/dev/loop")) continue; // gnome things
-                    dfs.Add(mnt[0], (mnt[5], int.Parse(mnt[2]) / 1024.0, int.Parse(mnt[1]) / 1024.0));
-                }
-
-                HardDrive = dfs;
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "An error occurred during updating disk information.");
-            }
         }
 
         private Task UpdateJudgehostsCore()
@@ -108,14 +50,11 @@ tmpfs                785     1       785   1% /run/user/1000
             int i = 0;
             while (!stoppingToken.IsCancellationRequested)
             {
-                if (i == 0) await UpdateHardDriveCore();
                 if (i == 0) await UpdateJudgehostsCore();
                 i++; if (i == 10) i = 0; // update hdd per 5min
                 await Task.Delay(30 * 1000, stoppingToken);
             }
         }
-
-        public IReadOnlyDictionary<string, (string Type, double Used, double Total)> HardDrive { get; private set; }
 
         public IReadOnlyList<(string ServiceName, string JudgehostName)> Judgehosts { get; private set; }
     }

@@ -16,6 +16,8 @@ namespace JetHub.Services
         Task<List<CpuInformation>> GetCpuInformationAsync();
 
         Task<KernelInformation> GetKernelInformationAsync();
+
+        Task<List<DriveInformation>> GetDriveInformationAsync(bool fixedOnly = true);
     }
 
     public class LinuxSystem : IHostSystem
@@ -86,6 +88,44 @@ namespace JetHub.Services
             return cpus;
         }
 
+        public Task<List<DriveInformation>> GetDriveInformationAsync(bool fixedOnly = true)
+        {
+            List<DriveInformation> drives = new();
+
+            IntPtr mtab = Interop.Libc.setmntent("/etc/mtab", "r");
+            if (mtab == IntPtr.Zero)
+            {
+                throw new AccessViolationException("Failed to open /etc/mtab");
+            }
+
+            try
+            {
+                while (Interop.Libc.getmntent(mtab) is Interop.Libc.mntent_t mnt)
+                {
+                    DriveType type = Interop.Libc.GetDriveType(mnt.mnt_fsname);
+                    if (!fixedOnly || type == DriveType.Fixed)
+                    {
+                        Interop.Libc.statvfs(mnt.mnt_dir, out Interop.Libc.statvfs_t vfs);
+                        drives.Add(new DriveInformation()
+                        {
+                            MountPoint = mnt.mnt_dir,
+                            FileSystem = mnt.mnt_fsname,
+                            Type = mnt.mnt_type,
+                            Category = type,
+                            TotalSizeBytes = vfs.f_bsize * vfs.f_blocks,
+                            UsedSizeBytes = (vfs.f_bsize - vfs.f_bavail) * vfs.f_blocks,
+                        });
+                    }
+                }
+            }
+            finally
+            {
+                Interop.Libc.endmntent(mtab);
+            }
+
+            return Task.FromResult(drives);
+        }
+
         public async Task<List<InstalledPackage>> GetInstalledPackagesAsync(string root = "/")
         {
             root += (root.EndsWith("/") ? "" : "/") + "var/lib/dpkg/status";
@@ -141,6 +181,31 @@ namespace JetHub.Services
                 new CpuInformation { ModelName = "Intel(R) Xeon(R) CPU E5-2682 v4 @ 2.50GHz", ProcessorId = 1, CoreId = 0, PhysicalId = 0, ClockSpeed = "2500.000 MHz", CacheSize = "256 KB" },
                 new CpuInformation { ModelName = "Intel(R) Xeon(R) CPU E5-2682 v4 @ 2.50GHz", ProcessorId = 2, CoreId = 1, PhysicalId = 0, ClockSpeed = "2500.000 MHz", CacheSize = "256 KB" },
                 new CpuInformation { ModelName = "Intel(R) Xeon(R) CPU E5-2682 v4 @ 2.50GHz", ProcessorId = 3, CoreId = 1, PhysicalId = 0, ClockSpeed = "2500.000 MHz", CacheSize = "256 KB" },
+            });
+        }
+
+        public Task<List<DriveInformation>> GetDriveInformationAsync(bool fixedOnly = true)
+        {
+            return Task.FromResult(new List<DriveInformation>()
+            {
+                new DriveInformation()
+                {
+                    Type = "ext4",
+                    Category = DriveType.Fixed,
+                    FileSystem = "/dev/vda1",
+                    MountPoint = "/",
+                    TotalSizeBytes = (ulong)(19.9 * 1024 * 1024 * 1024),
+                    UsedSizeBytes = (ulong)(6.24 * 1024 * 1024 * 1024),
+                },
+                new DriveInformation()
+                {
+                    Type = "fat",
+                    Category = DriveType.Fixed,
+                    FileSystem = "/dev/vda2",
+                    MountPoint = "/boot/efi",
+                    TotalSizeBytes = (ulong)(49.9 * 1024 * 1024),
+                    UsedSizeBytes = (ulong)(12.35 * 1024 * 1024),
+                },
             });
         }
 

@@ -39,6 +39,14 @@ namespace JetHub.Controllers
         }
 
         [HttpGet]
+        public Task<List<DriveInformation>> Diskinfo(
+            [FromServices] IHostSystem hostSystem,
+            [FromQuery] bool fixedOnly = true)
+        {
+            return hostSystem.GetDriveInformationAsync(fixedOnly);
+        }
+
+        [HttpGet]
         public IActionResult Test()
         {
             return Ok(new[]
