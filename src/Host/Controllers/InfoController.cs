@@ -45,5 +45,11 @@ namespace JetHub.Controllers
         {
             return hostSystem.GetDriveInformationAsync(fixedOnly);
         }
+
+        [HttpGet]
+        public Task<List<ProcessInformation>> Processes()
+        {
+            return hostSystem.GetProcessInformationAsync();
+        }
     }
 }

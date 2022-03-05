@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Xylab.Management.Models;
@@ -79,6 +80,24 @@ namespace Xylab.Management.Services
                     "(buildd@lcy01-amd64-027) " +
                     "(gcc version 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04)) " +
                     "#113-Ubuntu SMP Thu Jul 9 23:41:39 UTC 2020",
+            });
+        }
+
+        public Task<List<ProcessInformation>> GetProcessInformationAsync()
+        {
+            Process process = Process.GetCurrentProcess();
+            return Task.FromResult(new List<ProcessInformation>()
+            {
+                new ProcessInformation()
+                {
+                    Name = process.ProcessName,
+                    Id = process.Id,
+                    WorkingSet = process.WorkingSet64,
+                    CommandLine = "N/A",
+                    ThreadCount = process.Threads.Count,
+                    TotalCpuTime = process.TotalProcessorTime,
+                    User = "N/A",
+                }
             });
         }
 

@@ -15,5 +15,7 @@ namespace Xylab.Management.Services
         Task<KernelInformation> GetKernelInformationAsync();
 
         Task<List<DriveInformation>> GetDriveInformationAsync(bool fixedOnly = true);
+
+        Task<List<ProcessInformation>> GetProcessInformationAsync();
     }
 }

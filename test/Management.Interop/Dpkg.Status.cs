@@ -1,6 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
-using Xylab.Management.Services;
+using Xylab.Management.Interop;
 
 namespace Xylab.Management.UnitTests
 {
@@ -10,7 +10,7 @@ namespace Xylab.Management.UnitTests
         [TestMethod]
         public void ParseDpkgStatus()
         {
-            var list = LinuxSystem.ParseDpkgStatus(File.ReadAllLines("./Content/dpkg.status"));
+            var list = Parser.DpkgStatus(File.ReadAllLines("./Content/dpkg.status"));
 
             Assert.AreEqual(5, list.Count);
             Assert.AreEqual("coreutils", list[2].Name);

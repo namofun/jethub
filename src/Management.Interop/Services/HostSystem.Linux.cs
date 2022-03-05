@@ -9,45 +9,6 @@ namespace Xylab.Management.Services
 {
     public class LinuxSystem : IHostSystem
     {
-        public static List<InstalledPackage> ParseDpkgStatus(string[] contents)
-        {
-            const string PackagePrefix = "Package: ";
-            const string ArchitecturePrefix = "Architecture: ";
-            const string VersionPrefix = "Version: ";
-
-            List<InstalledPackage> installedPackages = new();
-            InstalledPackage package = null;
-            foreach (string line in contents)
-            {
-                if (string.IsNullOrWhiteSpace(line))
-                {
-                    if (package?.Name != null)
-                    {
-                        installedPackages.Add(package);
-                        package = null;
-                    }
-
-                    continue;
-                }
-
-                package ??= new InstalledPackage();
-                if (line.StartsWith(PackagePrefix))
-                {
-                    package.Name = line[PackagePrefix.Length..];
-                }
-                else if (line.StartsWith(ArchitecturePrefix))
-                {
-                    package.Architect = line[ArchitecturePrefix.Length..];
-                }
-                else if (line.StartsWith(VersionPrefix))
-                {
-                    package.Version = line[VersionPrefix.Length..];
-                }
-            }
-
-            return installedPackages;
-        }
-
         public async Task<List<CpuInformation>> GetCpuInformationAsync()
         {
             List<CpuInformation> cpus = new();
@@ -122,7 +83,7 @@ namespace Xylab.Management.Services
                 return new List<InstalledPackage>();
             }
 
-            return ParseDpkgStatus(await File.ReadAllLinesAsync(root));
+            return Interop.Parser.DpkgStatus(await File.ReadAllLinesAsync(root));
         }
 
         public async Task<KernelInformation> GetKernelInformationAsync()
@@ -132,6 +93,43 @@ namespace Xylab.Management.Services
                 Cmdline = (await File.ReadAllTextAsync("/proc/cmdline")).Trim(),
                 Version = (await File.ReadAllTextAsync("/proc/version")).Trim(),
             };
+        }
+
+        public Task<List<ProcessInformation>> GetProcessInformationAsync()
+        {
+            List<(int pid, string stat, string status, string cmdline)> processes = new();
+            foreach (string directoryName in Directory.EnumerateDirectories("/proc"))
+            {
+                if (!int.TryParse(directoryName, out int processId) || processId <= 0) continue;
+                processes.Add((
+                    pid: processId,
+                    stat: File.ReadAllText("/proc/{pid}/stat"),
+                    status: File.ReadAllText("/proc/{pid}/status"),
+                    cmdline: File.ReadAllText("/proc/{pid}/cmdline")));
+            }
+
+            Dictionary<uint, string> usersMapping = new();
+            string GetUserNameById(uint userId)
+            {
+                if (!usersMapping.TryGetValue(userId, out string userName))
+                {
+                    var passwd = Interop.Libc.getpwuid(userId);
+                    usersMapping.Add(userId, passwd?.pw_name ?? userId.ToString());
+                }
+
+                return userName;
+            }
+
+            List<ProcessInformation> parsedProcesses = new();
+            foreach (var process in processes)
+            {
+                parsedProcesses.Add(
+                    Interop.Parser.ProcfsPsinfo(
+                        process,
+                        GetUserNameById));
+            }
+
+            return Task.FromResult(parsedProcesses);
         }
 
         public async Task<SystemInformation> GetSystemInformationAsync()
