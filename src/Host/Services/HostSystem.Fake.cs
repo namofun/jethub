@@ -101,6 +101,21 @@ namespace Xylab.Management.Services
             });
         }
 
+        public Task<List<ServiceInformation>> GetServicesAsync()
+        {
+            return Task.FromResult(new List<ServiceInformation>()
+            {
+                new ServiceInformation()
+                {
+                    Name = "ssh",
+                    Description = "OpenBSD Secure Shell server",
+                    LoadState = "loaded",
+                    ActiveState = "active",
+                    SubState = "running",
+                }
+            });
+        }
+
         public Task<SystemInformation> GetSystemInformationAsync()
         {
             return Task.FromResult(new SystemInformation

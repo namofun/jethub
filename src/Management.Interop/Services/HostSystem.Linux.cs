@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Tmds.DBus;
+using Xylab.Management.Interop.DBus;
 using Xylab.Management.Models;
 
 namespace Xylab.Management.Services
@@ -131,6 +133,29 @@ namespace Xylab.Management.Services
             }
 
             return Task.FromResult(parsedProcesses);
+        }
+
+        public async Task<List<ServiceInformation>> GetServicesAsync()
+        {
+            List<ServiceInformation> services = new();
+            IManager manager = Connection.System.CreateProxy<IManager>(Systemd.Service, Systemd.RootPath);
+            foreach (Unit unitInfo in await manager.ListUnitsByPatternsAsync(Array.Empty<string>(), new[] { "*.service" }))
+            {
+                if (unitInfo.UnitName.EndsWith(".service"))
+                {
+                    string shortName = unitInfo.UnitName[..^".service".Length];
+                    services.Add(new ServiceInformation
+                    {
+                        SubState = unitInfo.SubState,
+                        ActiveState = unitInfo.ActiveState,
+                        LoadState = unitInfo.LoadState,
+                        Description = unitInfo.Description,
+                        Name = shortName,
+                    });
+                }
+            }
+
+            return services;
         }
 
         public async Task<SystemInformation> GetSystemInformationAsync()

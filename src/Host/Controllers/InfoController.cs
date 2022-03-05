@@ -51,5 +51,11 @@ namespace JetHub.Controllers
         {
             return hostSystem.GetProcessInformationAsync();
         }
+
+        [HttpGet]
+        public Task<List<ServiceInformation>> Service()
+        {
+            return hostSystem.GetServicesAsync();
+        }
     }
 }
