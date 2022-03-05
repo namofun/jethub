@@ -1,8 +1,8 @@
-﻿using JetHub.Models;
-using JetHub.Services;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Xylab.Management.Models;
+using Xylab.Management.Services;
 
 namespace JetHub.Controllers
 {

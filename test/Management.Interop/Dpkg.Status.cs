@@ -1,8 +1,8 @@
-using JetHub.Services;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
+using Xylab.Management.Services;
 
-namespace JetHub.UnitTests
+namespace Xylab.Management.UnitTests
 {
     [TestClass]
     public class DpkgStatus

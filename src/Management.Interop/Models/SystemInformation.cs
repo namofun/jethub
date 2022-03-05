@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text.Json.Serialization;
 
-namespace JetHub.Models
+namespace Xylab.Management.Models
 {
     public class SystemInformation
     {

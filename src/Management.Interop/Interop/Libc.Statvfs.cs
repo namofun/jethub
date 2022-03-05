@@ -1,9 +1,9 @@
 ﻿using System.IO;
 using System.Runtime.InteropServices;
 
-namespace JetHub.Interop
+namespace Xylab.Management.Interop
 {
-    public partial class Libc
+    internal partial class Libc
     {
         [StructLayout(LayoutKind.Sequential)]
         public struct statvfs_t

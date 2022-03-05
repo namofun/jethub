@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using System;
 using System.Reflection;
+using Xylab.Management.Services;
 
 namespace JetHub
 {

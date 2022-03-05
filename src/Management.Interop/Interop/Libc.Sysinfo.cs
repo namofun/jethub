@@ -2,9 +2,9 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace JetHub.Interop
+namespace Xylab.Management.Interop
 {
-    public partial class Libc
+    internal partial class Libc
     {
         private const string libc_so_6 = @"/lib/x86_64-linux-gnu/libc.so.6";
         private const int FSHIFT = 11;

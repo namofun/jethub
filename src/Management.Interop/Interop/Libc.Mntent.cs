@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace JetHub.Interop
+namespace Xylab.Management.Interop
 {
-    public partial class Libc
+    internal partial class Libc
     {
         public struct mntent_t
         {
