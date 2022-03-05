@@ -6,17 +6,17 @@ namespace Xylab.Management.Services
 {
     public interface IHostSystem
     {
-        Task<SystemInformation> GetSystemInformationAsync();
+        Task<SystemInformation> GetSystemStatusAsync();
 
-        Task<List<InstalledPackage>> GetInstalledPackagesAsync(string root = "/");
+        Task<List<InstalledPackage>> GetPackagesAsync(string root = "/");
 
-        Task<List<CpuInformation>> GetCpuInformationAsync();
+        Task<List<CpuInformation>> GetCpusAsync();
 
-        Task<KernelInformation> GetKernelInformationAsync();
+        Task<KernelInformation> GetKernelAsync();
 
-        Task<List<DriveInformation>> GetDriveInformationAsync(bool fixedOnly = true);
+        Task<List<DriveInformation>> GetDrivesAsync(bool fixedOnly = true);
 
-        Task<List<ProcessInformation>> GetProcessInformationAsync();
+        Task<List<ProcessInformation>> GetProcessesAsync();
 
         Task<List<ServiceInformation>> GetServicesAsync();
     }

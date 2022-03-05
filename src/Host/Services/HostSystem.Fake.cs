@@ -9,7 +9,7 @@ namespace Xylab.Management.Services
 {
     public class FakeSystem : IHostSystem
     {
-        public Task<List<CpuInformation>> GetCpuInformationAsync()
+        public Task<List<CpuInformation>> GetCpusAsync()
         {
             return Task.FromResult(new List<CpuInformation>()
             {
@@ -20,7 +20,7 @@ namespace Xylab.Management.Services
             });
         }
 
-        public Task<List<DriveInformation>> GetDriveInformationAsync(bool fixedOnly = true)
+        public Task<List<DriveInformation>> GetDrivesAsync(bool fixedOnly = true)
         {
             return Task.FromResult(new List<DriveInformation>()
             {
@@ -45,7 +45,7 @@ namespace Xylab.Management.Services
             });
         }
 
-        public Task<List<InstalledPackage>> GetInstalledPackagesAsync(string root = "/")
+        public Task<List<InstalledPackage>> GetPackagesAsync(string root = "/")
         {
             return Task.FromResult(new List<InstalledPackage>()
             {
@@ -58,7 +58,7 @@ namespace Xylab.Management.Services
             });
         }
 
-        public Task<KernelInformation> GetKernelInformationAsync()
+        public Task<KernelInformation> GetKernelAsync()
         {
             return Task.FromResult(new KernelInformation()
             {
@@ -83,7 +83,7 @@ namespace Xylab.Management.Services
             });
         }
 
-        public Task<List<ProcessInformation>> GetProcessInformationAsync()
+        public Task<List<ProcessInformation>> GetProcessesAsync()
         {
             Process process = Process.GetCurrentProcess();
             return Task.FromResult(new List<ProcessInformation>()
@@ -116,7 +116,7 @@ namespace Xylab.Management.Services
             });
         }
 
-        public Task<SystemInformation> GetSystemInformationAsync()
+        public Task<SystemInformation> GetSystemStatusAsync()
         {
             return Task.FromResult(new SystemInformation
             {

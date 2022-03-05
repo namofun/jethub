@@ -19,10 +19,10 @@ namespace JetHub.Controllers
 
             return View(new IndexModel
             {
-                System = await hostSystem.GetSystemInformationAsync(),
-                Kernel = await hostSystem.GetKernelInformationAsync(),
-                Cpus = await hostSystem.GetCpuInformationAsync(),
-                Drives = await hostSystem.GetDriveInformationAsync(),
+                System = await hostSystem.GetSystemStatusAsync(),
+                Kernel = await hostSystem.GetKernelAsync(),
+                Cpus = await hostSystem.GetCpusAsync(),
+                Drives = await hostSystem.GetDrivesAsync(),
                 JudgehostCommitId = judgehostVersion.CommitId,
                 JudgehostBranch = judgehostVersion.Branch,
             });

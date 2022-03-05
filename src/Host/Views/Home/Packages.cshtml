@@ -14,7 +14,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in (await HostSystem.GetInstalledPackagesAsync()) ?? Enumerable.Empty<InstalledPackage>())
+            @foreach (var item in (await HostSystem.GetPackagesAsync()) ?? Enumerable.Empty<InstalledPackage>())
             {
                 <tr>
                     <td>@item.Name</td>
@@ -38,7 +38,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in (await HostSystem.GetInstalledPackagesAsync("/chroot/domjudge/")) ?? Enumerable.Empty<InstalledPackage>())
+            @foreach (var item in (await HostSystem.GetPackagesAsync("/chroot/domjudge/")) ?? Enumerable.Empty<InstalledPackage>())
             {
                 <tr>
                     <td>@item.Name</td>

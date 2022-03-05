@@ -11,7 +11,7 @@ namespace Xylab.Management.Services
 {
     public class LinuxSystem : IHostSystem
     {
-        public async Task<List<CpuInformation>> GetCpuInformationAsync()
+        public async Task<List<CpuInformation>> GetCpusAsync()
         {
             List<CpuInformation> cpus = new();
             string cpuinfo = await File.ReadAllTextAsync("/proc/cpuinfo");
@@ -38,7 +38,7 @@ namespace Xylab.Management.Services
             return cpus;
         }
 
-        public Task<List<DriveInformation>> GetDriveInformationAsync(bool fixedOnly = true)
+        public Task<List<DriveInformation>> GetDrivesAsync(bool fixedOnly = true)
         {
             List<DriveInformation> drives = new();
 
@@ -77,7 +77,7 @@ namespace Xylab.Management.Services
             return Task.FromResult(drives);
         }
 
-        public async Task<List<InstalledPackage>> GetInstalledPackagesAsync(string root = "/")
+        public async Task<List<InstalledPackage>> GetPackagesAsync(string root = "/")
         {
             root += (root.EndsWith("/") ? "" : "/") + "var/lib/dpkg/status";
             if (!File.Exists(root))
@@ -88,7 +88,7 @@ namespace Xylab.Management.Services
             return Interop.Parser.DpkgStatus(await File.ReadAllLinesAsync(root));
         }
 
-        public async Task<KernelInformation> GetKernelInformationAsync()
+        public async Task<KernelInformation> GetKernelAsync()
         {
             return new KernelInformation()
             {
@@ -97,7 +97,7 @@ namespace Xylab.Management.Services
             };
         }
 
-        public Task<List<ProcessInformation>> GetProcessInformationAsync()
+        public Task<List<ProcessInformation>> GetProcessesAsync()
         {
             const string ProcfsDir = "/proc/";
             List<(int pid, string stat, string status, string cmdline)> processes = new();
@@ -158,7 +158,7 @@ namespace Xylab.Management.Services
             return services;
         }
 
-        public async Task<SystemInformation> GetSystemInformationAsync()
+        public async Task<SystemInformation> GetSystemStatusAsync()
         {
             Interop.Libc.sysinfo(out Interop.Libc.sysinfo_t sysinfo);
             string[] memInfo = await File.ReadAllLinesAsync("/proc/meminfo");

@@ -19,37 +19,37 @@ namespace JetHub.Controllers
         [HttpGet]
         public Task<SystemInformation> System()
         {
-            return hostSystem.GetSystemInformationAsync();
+            return hostSystem.GetSystemStatusAsync();
         }
 
         [HttpGet]
         public Task<List<InstalledPackage>> Dpkg([FromQuery] bool isChroot)
         {
-            return hostSystem.GetInstalledPackagesAsync(isChroot ? "/chroot/domjudge/" : "/");
+            return hostSystem.GetPackagesAsync(isChroot ? "/chroot/domjudge/" : "/");
         }
 
         [HttpGet]
         public Task<List<CpuInformation>> Cpu()
         {
-            return hostSystem.GetCpuInformationAsync();
+            return hostSystem.GetCpusAsync();
         }
 
         [HttpGet]
         public Task<KernelInformation> Kernel()
         {
-            return hostSystem.GetKernelInformationAsync();
+            return hostSystem.GetKernelAsync();
         }
 
         [HttpGet]
         public Task<List<DriveInformation>> Disk([FromQuery] bool fixedOnly = true)
         {
-            return hostSystem.GetDriveInformationAsync(fixedOnly);
+            return hostSystem.GetDrivesAsync(fixedOnly);
         }
 
         [HttpGet]
         public Task<List<ProcessInformation>> Process()
         {
-            return hostSystem.GetProcessInformationAsync();
+            return hostSystem.GetProcessesAsync();
         }
 
         [HttpGet]
