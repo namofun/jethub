@@ -45,7 +45,7 @@ namespace Xylab.Management.Interop
             NextInt64OrFail(ref stat, ' ', out long stime);
             instance.TotalCpuTime = Libc.TicksToTimeSpan(utime + stime);
 
-            instance.CommandLine = proc.cmdline.Trim();
+            instance.CommandLine = proc.cmdline.Replace('\u0000', ' ').Trim();
             return instance;
         }
 
