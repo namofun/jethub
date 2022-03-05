@@ -97,10 +97,11 @@ namespace Xylab.Management.Services
 
         public Task<List<ProcessInformation>> GetProcessInformationAsync()
         {
+            const string ProcfsDir = "/proc/";
             List<(int pid, string stat, string status, string cmdline)> processes = new();
-            foreach (string directoryName in Directory.EnumerateDirectories("/proc"))
+            foreach (string directoryName in Directory.EnumerateDirectories(ProcfsDir))
             {
-                if (!int.TryParse(directoryName, out int processId) || processId <= 0) continue;
+                if (!int.TryParse(directoryName[ProcfsDir.Length..], out int processId) || processId <= 0) continue;
                 processes.Add((
                     pid: processId,
                     stat: File.ReadAllText($"/proc/{processId}/stat"),

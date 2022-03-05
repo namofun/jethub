@@ -47,7 +47,7 @@ namespace JetHub.Controllers
         }
 
         [HttpGet]
-        public Task<List<ProcessInformation>> Processes()
+        public Task<List<ProcessInformation>> Process()
         {
             return hostSystem.GetProcessInformationAsync();
         }
