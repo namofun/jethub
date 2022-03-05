@@ -103,9 +103,9 @@ namespace Xylab.Management.Services
                 if (!int.TryParse(directoryName, out int processId) || processId <= 0) continue;
                 processes.Add((
                     pid: processId,
-                    stat: File.ReadAllText("/proc/{pid}/stat"),
-                    status: File.ReadAllText("/proc/{pid}/status"),
-                    cmdline: File.ReadAllText("/proc/{pid}/cmdline")));
+                    stat: File.ReadAllText($"/proc/{processId}/stat"),
+                    status: File.ReadAllText($"/proc/{processId}/status"),
+                    cmdline: File.ReadAllText($"/proc/{processId}/cmdline")));
             }
 
             Dictionary<uint, string> usersMapping = new();
