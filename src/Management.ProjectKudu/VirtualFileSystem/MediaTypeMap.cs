@@ -8,12 +8,14 @@ namespace Xylab.Management.VirtualFileSystem
     // https://github.com/Azure-App-Service/KuduLite
     public class MediaTypeMap
     {
-        private static readonly MediaTypeMap _defaultInstance = new MediaTypeMap();
-        private static readonly FileExtensionContentTypeProvider _typeProvider = new FileExtensionContentTypeProvider();
+        private static readonly MediaTypeMap _defaultInstance = new();
+        private static readonly FileExtensionContentTypeProvider _typeProvider = new();
         private readonly ConcurrentDictionary<string, MediaTypeHeaderValue> _mediatypeMap = CreateMediaTypeMap();
         private readonly MediaTypeHeaderValue _defaultMediaType = MediaTypeHeaderValue.Parse("application/octet-stream");
 
         public static MediaTypeMap Default => _defaultInstance;
+
+        public static readonly MediaTypeHeaderValue InodeDirectory = MediaTypeHeaderValue.Parse("inode/directory");
 
         // CORE TODO Double check this. We no longer have MimeMapping so I use FileExtensionContentTypeProvider
         // from the Microsoft.AspNetCore.StaticFiles package. I left in the ConcurrentDictionary usage and the
