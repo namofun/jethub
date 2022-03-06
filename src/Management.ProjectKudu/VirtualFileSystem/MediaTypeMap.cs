@@ -3,11 +3,9 @@ using Microsoft.Net.Http.Headers;
 using System;
 using System.Collections.Concurrent;
 
-namespace JetHub.Models
+namespace Xylab.Management.VirtualFileSystem
 {
-    /// <remarks>
-    /// REF: https://github.com/Azure-App-Service/KuduLite
-    /// </remarks>
+    // https://github.com/Azure-App-Service/KuduLite
     public class MediaTypeMap
     {
         private static readonly MediaTypeMap _defaultInstance = new MediaTypeMap();

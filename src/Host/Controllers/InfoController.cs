@@ -47,13 +47,13 @@ namespace JetHub.Controllers
         }
 
         [HttpGet]
-        public Task<List<ProcessInformation>> Process()
+        public Task<List<ProcessInformation>> Proc()
         {
             return hostSystem.GetProcessesAsync();
         }
 
         [HttpGet]
-        public Task<List<ServiceInformation>> Service()
+        public Task<List<ServiceInformation>> Svc()
         {
             return hostSystem.GetServicesAsync();
         }

@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Text.Json.Serialization;
 
-namespace JetHub.Models
+namespace Xylab.Management.VirtualFileSystem
 {
-    /// <remarks>
-    /// REF: https://github.com/Azure-App-Service/KuduLite
-    /// </remarks>
+    // https://github.com/Azure-App-Service/KuduLite
     public class VfsStatEntry
     {
         [JsonPropertyName("name")]
