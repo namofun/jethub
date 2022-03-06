@@ -281,6 +281,7 @@ namespace Xylab.Management.VirtualFileSystem
             string baseAddress = requestUri.AbsoluteUri.Split('?').First();
             string query = requestUri.Query;
 
+            if (!baseAddress.EndsWith(UriSegmentSeparator)) baseAddress += UriSegmentSeparator;
             foreach (IFileSystemInfo fileSysInfo in infos)
             {
                 bool isDirectory = (fileSysInfo.Attributes & FileAttributes.Directory) != 0;

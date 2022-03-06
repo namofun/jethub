@@ -147,14 +147,15 @@ namespace Xylab.Management.VirtualFileSystem
         {
             Contract.Assert(sysInfo != null);
 
-            const string etag_charmap = "0123456789abcdef";
+            const string etag_charmap = "0123456789ABCDEF";
             Span<byte> etag = stackalloc byte[8];
-            Span<char> result = stackalloc char[2 + sizeof(long) * 2];
-            result[0] = result[17] = '"';
+            BitConverter.TryWriteBytes(etag, sysInfo.LastWriteTimeUtc.Ticks);
+            Span<char> result = stackalloc char[4 + sizeof(long) * 2];
+            result[0] = result[19] = '"'; result[1] = '0'; result[2] = 'x';
             for (int i = 0; i < 8; i++)
             {
-                result[2 * i + 1] = etag_charmap[etag[i] >> 4];
-                result[2 * i + 2] = etag_charmap[etag[i] & 15];
+                result[2 * i + 3] = etag_charmap[etag[i] >> 4];
+                result[2 * i + 4] = etag_charmap[etag[i] & 15];
             }
 
             return new EntityTagHeaderValue(new string(result));

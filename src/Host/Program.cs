@@ -6,6 +6,7 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using System;
+using System.IO.Abstractions;
 using System.Reflection;
 using Xylab.Management.Services;
 
@@ -32,6 +33,7 @@ namespace JetHub
             builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<GlobalOptions>>().Value);
             builder.Services.AddSignalR();
 
+            builder.Services.AddSingleton<IFileSystemV2, FileSystemV2>();
             if (Environment.OSVersion.Platform == PlatformID.Unix)
             {
                 builder.Services.AddSingleton<IHostSystem, LinuxSystem>();
