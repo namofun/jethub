@@ -1,10 +1,6 @@
 using JetHub.Services;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using System;
 using System.IO.Abstractions;
 using System.Reflection;
@@ -19,7 +15,6 @@ namespace JetHub
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddControllers();
-            builder.Services.AddDirectoryBrowser();
 
             builder.Services.Configure<GlobalOptions>(options =>
             {
@@ -30,48 +25,25 @@ namespace JetHub
                 options.Version = typeof(Program).Assembly.GetName().Version?.ToString() ?? "0.0.0.0";
             });
 
-            builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<GlobalOptions>>().Value);
             builder.Services.AddSignalR();
 
             builder.Services.AddSingleton<IFileSystemV2, FileSystemV2>();
             if (Environment.OSVersion.Platform == PlatformID.Unix)
             {
                 builder.Services.AddSingleton<IHostSystem, LinuxSystem>();
-                builder.Services.AddSingleton<ISystemInfo, ProcfsSystemInfo>();
-
-                builder.Services.AddSingleton<DfFreeStorageInfo>();
-                builder.Services.AddSingleton<IStorageInfo>(sp => sp.GetRequiredService<DfFreeStorageInfo>());
-                builder.Services.AddSingleton<IHostedService>(sp => sp.GetRequiredService<DfFreeStorageInfo>());
-
-                builder.Services.AddSingleton<OneShotGlobalInfo>();
-                builder.Services.AddSingleton<IGlobalInfo>(sp => sp.GetRequiredService<OneShotGlobalInfo>());
             }
             else
             {
                 builder.Services.AddSingleton<IHostSystem, FakeSystem>();
-                builder.Services.AddSingleton<ISystemInfo, FakeSystemInfo>();
-                builder.Services.AddSingleton<IStorageInfo, FakeStorageInfo>();
-                builder.Services.AddSingleton<IGlobalInfo, FakeGlobalInfo>();
             }
 
             var app = builder.Build();
 
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                app.UseExceptionHandler("/error");
-            }
-
-            app.UseStaticFiles();
             app.UseRouting();
             app.UseAuthorization();
 
             app.MapControllers();
             app.MapHub<LogHub>("/api/log-stream");
-            app.MapFileServer("/judgings", new PhysicalFileProvider(app.Services.GetRequiredService<IGlobalInfo>().VfsRoot));
 
             app.Run();
         }

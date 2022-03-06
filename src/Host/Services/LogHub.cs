@@ -73,15 +73,16 @@ namespace JetHub.Services
 
             var httpContext = Context.GetHttpContext();
             var services = httpContext.RequestServices;
+            string fileName = null;
 
-            if (httpContext.Request.Query.TryGetValue("host", out var hosts)
-                && hosts.Count == 1
-                && services.GetRequiredService<IStorageInfo>().Judgehosts.Any(s => s.JudgehostName == hosts[0]))
+            if (httpContext.Request.Query.TryGetValue("host", out var hosts) && hosts.Count == 1)
             {
-                var hostname = hosts[0];
-                var fileName = "/opt/domjudge/judgehost/log/judge." + hosts[0] + ".log";
+                fileName = "/opt/domjudge/judgehost/log/judge." + hosts[0] + ".log";
                 if (!File.Exists(fileName)) fileName = "playground/null.log";
+            }
 
+            if (fileName != null)
+            {
                 var pumper = new LogPumper(
                     fileName,
                     Context.ConnectionId,
