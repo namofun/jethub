@@ -6,6 +6,7 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4CDD2A9D-3BB4-4D3F-B254-E03E2F4BC808}"
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.props = Directory.Build.props
+		build\xylab.snk = build\xylab.snk
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JetHub.Host", "src\Host\JetHub.Host.csproj", "{C9A18B89-F16E-4530-B2BF-31D00AB3ED41}"
@@ -15,6 +16,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Management.Interop", "src\Management.Interop\Management.Interop.csproj", "{A72FC175-1BDA-4E99-935D-2EB3FB00AB99}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Management.ProjectKudu", "src\Management.ProjectKudu\Management.ProjectKudu.csproj", "{4AFC5108-6848-4C03-B6C2-478EE1188D8B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{601DFC21-365F-46D8-9457-1501464C4514}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{6008DCE4-3C13-4D4E-869E-27E138C63FEB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +46,12 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C9A18B89-F16E-4530-B2BF-31D00AB3ED41} = {6008DCE4-3C13-4D4E-869E-27E138C63FEB}
+		{558907EF-512D-4039-8A7E-EC3C437EECC6} = {6008DCE4-3C13-4D4E-869E-27E138C63FEB}
+		{A72FC175-1BDA-4E99-935D-2EB3FB00AB99} = {601DFC21-365F-46D8-9457-1501464C4514}
+		{4AFC5108-6848-4C03-B6C2-478EE1188D8B} = {601DFC21-365F-46D8-9457-1501464C4514}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9E6868DA-B17E-4928-8C7A-0D6F2A8DC286}

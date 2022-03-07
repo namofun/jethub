@@ -8,4 +8,9 @@
     <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)artifacts\$(MSBuildProjectName)\obj\</BaseIntermediateOutputPath>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)build\xylab.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
 </Project>
