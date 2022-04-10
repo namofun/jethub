@@ -1,0 +1,9 @@
+<Project>
+
+  <Import Project="NugetPackage.Common.props" />
+
+  <PropertyGroup>
+    <Description>Management platform support. $(DescriptionAttach)</Description>
+  </PropertyGroup>
+
+</Project>

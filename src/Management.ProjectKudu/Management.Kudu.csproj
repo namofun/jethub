@@ -6,7 +6,10 @@
     <AssemblyName>Xylab.Management.Kudu</AssemblyName>
     <RootNamespace>Xylab.Management</RootNamespace>
     <NoWarn>$(NoWarn);SYSLIB0013</NoWarn>
+    <DescriptionAttach>Useful tools from ProjectKudu</DescriptionAttach>
   </PropertyGroup>
+
+  <Import Project="..\..\build\NugetPackage.Backend.props" />
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

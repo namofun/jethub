@@ -1,0 +1,9 @@
+<Project>
+
+  <Import Project="NugetPackage.Common.props" />
+
+  <PropertyGroup>
+    <Description>UI kit for ASP.NET Core with moduling support. $(DescriptionAttach)</Description>
+  </PropertyGroup>
+
+</Project>

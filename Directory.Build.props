@@ -2,8 +2,9 @@
 
   <PropertyGroup>
     <GitRepositoryDirectory>$(MSBuildThisFileDirectory).git</GitRepositoryDirectory>
+    <PreviewBuild>0</PreviewBuild>
     <AspNetCoreVersion>6.0.0</AspNetCoreVersion>
-    <SubstrateVersion>1.1.44</SubstrateVersion>
+    <SubstrateVersion>1.1.45</SubstrateVersion>
     <BaseOutputPath>$(MSBuildThisFileDirectory)artifacts\$(MSBuildProjectName)\bin\</BaseOutputPath>
     <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)artifacts\$(MSBuildProjectName)\obj\</BaseIntermediateOutputPath>
   </PropertyGroup>

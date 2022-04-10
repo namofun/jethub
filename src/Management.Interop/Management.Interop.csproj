@@ -5,7 +5,10 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>Xylab.Management.Interop</AssemblyName>
     <RootNamespace>Xylab.Management</RootNamespace>
+    <DescriptionAttach>Linux system interop library</DescriptionAttach>
   </PropertyGroup>
+
+  <Import Project="..\..\build\NugetPackage.Backend.props" />
 
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">

@@ -1,0 +1,21 @@
+<Project>
+
+  <PropertyGroup>
+    <Title>$(AssemblyName)</Title>
+    <PackageProjectUrl>https://github.com/namofun/jethub</PackageProjectUrl>
+    <Company />
+    <PackageTags>management workflows</PackageTags>
+    <PackageReleaseNotes>Management Platform Distribution</PackageReleaseNotes>
+    <RepositoryUrl>https://github.com/namofun/jethub</RepositoryUrl>
+    <Authors>yang-er</Authors>
+    <Version>1.2.0</Version>
+    <PackageVersion>1.2.$(PreviewBuild)</PackageVersion>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <AssemblyVersion>$(PackageVersion).0</AssemblyVersion>
+    <FileVersion>$(PackageVersion).0</FileVersion>
+  </PropertyGroup>
+
+</Project>
