@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Management.Interop\Management.Interop.csproj" />
-    <ProjectReference Include="..\Management.ProjectKudu\Management.ProjectKudu.csproj" />
+    <ProjectReference Include="..\Management.ProjectKudu\Management.Kudu.csproj" />
   </ItemGroup>
 
 </Project>

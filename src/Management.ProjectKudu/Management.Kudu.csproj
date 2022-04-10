@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyName>Xylab.Management.ProjectKudu</AssemblyName>
+    <AssemblyName>Xylab.Management.Kudu</AssemblyName>
     <RootNamespace>Xylab.Management</RootNamespace>
     <NoWarn>$(NoWarn);SYSLIB0013</NoWarn>
   </PropertyGroup>

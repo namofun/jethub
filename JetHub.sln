@@ -5,7 +5,10 @@ VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4CDD2A9D-3BB4-4D3F-B254-E03E2F4BC808}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
 		Directory.Build.props = Directory.Build.props
+		NuGet.config = NuGet.config
+		README.md = README.md
 		build\xylab.snk = build\xylab.snk
 	EndProjectSection
 EndProject
@@ -15,7 +18,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Management.Interop.UnitTest
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Management.Interop", "src\Management.Interop\Management.Interop.csproj", "{A72FC175-1BDA-4E99-935D-2EB3FB00AB99}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Management.ProjectKudu", "src\Management.ProjectKudu\Management.ProjectKudu.csproj", "{4AFC5108-6848-4C03-B6C2-478EE1188D8B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Management.Kudu", "src\Management.ProjectKudu\Management.Kudu.csproj", "{4AFC5108-6848-4C03-B6C2-478EE1188D8B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{601DFC21-365F-46D8-9457-1501464C4514}"
 EndProject
