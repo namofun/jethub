@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Xylab.Workflows.Legacy</AssemblyName>
+    <RootNamespace>Xylab.Workflows.Legacy</RootNamespace>
+    <DescriptionAttach>The jobs abstraction</DescriptionAttach>
+  </PropertyGroup>
+
+  <Import Project="..\..\build\NugetPackage.props" />
+
+  <ItemGroup>
+    <PackageReference Include="SatelliteSite.Abstraction" Version="$(SubstrateVersion)" />
+  </ItemGroup>
+
+</Project>
