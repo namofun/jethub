@@ -35,6 +35,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SatelliteSite.Host", "src\S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workflows.Legacy.Module", "src\Jobs.Module\Workflows.Legacy.Module.csproj", "{964EC0B3-37E3-4647-9DF0-CCC1C7633BED}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workflows.LogicApps", "src\Workflows.LogicApps\Workflows.LogicApps.csproj", "{B9C4132E-7457-43C3-8316-F814B987D283}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,10 @@ Global
 		{964EC0B3-37E3-4647-9DF0-CCC1C7633BED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{964EC0B3-37E3-4647-9DF0-CCC1C7633BED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{964EC0B3-37E3-4647-9DF0-CCC1C7633BED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9C4132E-7457-43C3-8316-F814B987D283}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9C4132E-7457-43C3-8316-F814B987D283}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9C4132E-7457-43C3-8316-F814B987D283}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9C4132E-7457-43C3-8316-F814B987D283}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -81,6 +87,7 @@ Global
 		{6C6B5CFF-03F0-488E-9847-6A500F56F9A6} = {601DFC21-365F-46D8-9457-1501464C4514}
 		{618936D2-C39C-483B-BD6E-99CC8C5E444C} = {4522A32F-5478-436E-86FD-FF96AD1F406F}
 		{964EC0B3-37E3-4647-9DF0-CCC1C7633BED} = {601DFC21-365F-46D8-9457-1501464C4514}
+		{B9C4132E-7457-43C3-8316-F814B987D283} = {601DFC21-365F-46D8-9457-1501464C4514}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9E6868DA-B17E-4928-8C7A-0D6F2A8DC286}

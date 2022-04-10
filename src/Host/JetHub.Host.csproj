@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Management.Interop\Management.Interop.csproj" />
     <ProjectReference Include="..\Management.ProjectKudu\Management.Kudu.csproj" />
+    <ProjectReference Include="..\Workflows.LogicApps\Workflows.LogicApps.csproj" />
   </ItemGroup>
 
 </Project>
