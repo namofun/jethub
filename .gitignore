@@ -340,4 +340,5 @@ ASALocalRun/
 healthchecksdb
 
 # Migrations
-/src/Host/Migrations
+/src/SatelliteSite/Migrations
+/src/SatelliteSite/JobBlobs
