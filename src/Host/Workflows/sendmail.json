@@ -1,0 +1,70 @@
+{
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "actions": {
+      "Send email as noreply": {
+        "inputs": {
+          "body": {
+            "Body": "@triggerBody()?['content']",
+            "From": "noreply@xylab.fun",
+            "Importance": "Normal",
+            "IsHtml": "@triggerBody()?['isHtml']",
+            "Subject": "@triggerBody()?['subject']",
+            "To": "@triggerBody()?['to']"
+          },
+          "host": {
+            "connection": {
+              "referenceName": "office365"
+            }
+          },
+          "method": "post",
+          "path": "/Mail"
+        },
+        "runAfter": {},
+        "type": "ApiConnection"
+      },
+      "Response": {
+        "inputs": {
+          "body": "@body('Send email as noreply')",
+          "statusCode": 200
+        },
+        "kind": "http",
+        "runAfter": {
+          "Send email as noreply": [
+            "Succeeded"
+          ]
+        },
+        "type": "Response"
+      }
+    },
+    "contentVersion": "1.0.0.0",
+    "outputs": {},
+    "parameters": {},
+    "triggers": {
+      "manual": {
+        "inputs": {
+          "method": "POST",
+          "schema": {
+            "properties": {
+              "content": {
+                "type": "string"
+              },
+              "isHtml": {
+                "type": "boolean"
+              },
+              "subject": {
+                "type": "string"
+              },
+              "to": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "kind": "Http",
+        "type": "Request"
+      }
+    }
+  }
+}

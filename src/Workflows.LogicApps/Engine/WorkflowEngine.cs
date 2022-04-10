@@ -1,6 +1,7 @@
 ﻿using Microsoft.Azure.Workflows.Common.Constants;
 using Microsoft.Azure.Workflows.Common.Extensions;
 using Microsoft.Azure.Workflows.Data;
+using Microsoft.Azure.Workflows.Data.CacheProviders;
 using Microsoft.Azure.Workflows.Data.Configuration;
 using Microsoft.Azure.Workflows.Data.Definitions;
 using Microsoft.Azure.Workflows.Data.Engines;
@@ -12,7 +13,6 @@ using Microsoft.Azure.Workflows.Worker.Dispatcher;
 using Microsoft.WindowsAzure.ResourceStack.Common.Instrumentation;
 using Microsoft.WindowsAzure.ResourceStack.Common.Services;
 using Newtonsoft.Json.Linq;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -64,9 +64,19 @@ namespace Xylab.Workflows.LogicApps.Engine
         public static async Task<WorkflowEngine> CreateEngine(EdgeFlowConfigurationSource configuration)
         {
             CloudConfigurationManager.Instance = configuration;
-            EdgeFlowConfiguration flowConfiguration = new(configuration) { FlowEdgeEnvironmentEndpointUri = new Uri("http://localhost") };
+            EdgeFlowConfiguration flowConfiguration = new(configuration)
+            {
+                FlowEdgeEnvironmentEndpointUri = configuration.EndpointUri,
+                FlowEdgeEnvironmentAppDirectoryPath = configuration.AppDirectoryPath,
+            };
+
             await flowConfiguration.Initialize();
             flowConfiguration.EnsureInitialized();
+
+            EdgeConnectionsDetails connections = await flowConfiguration.EdgeConnectionsDataProvider.GetEdgeConnectionDetails();
+            EdgeConnectionCacheProvider connectionCache = ((EdgeFlowCacheProviders)flowConfiguration.CacheProviders).ConnectionCacheProvider;
+            connectionCache.SetConnectionReferences(connections.ManagedApiConnections);
+            connectionCache.SetServiceProviderConnections(connections.ServiceProviderConnections);
 
             HttpConfiguration httpConfiguration = new()
             {

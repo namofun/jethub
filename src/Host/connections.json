@@ -1,0 +1,28 @@
+{
+  "managedApiConnections": {
+    "office365": {
+      "connection": {
+        "id": "/subscriptions/myedgesubs/resourceGroups/myedgerg/providers/Microsoft.Web/connections/office365"
+      },
+      "api": {
+        "name": "office365",
+        "displayName": "Office 365 Outlook",
+        "description": "Microsoft Office 365 is a cloud-based service that is designed to help meet your organization's needs for robust security, reliability, and user productivity.",
+        "iconUri": "https://connectoricons-prod.azureedge.net/releases/v1.0.1566/1.0.1566.2741/office365/icon.png",
+        "brandColor": "#0078D4",
+        "category": "Standard",
+        "id": "/subscriptions/myedgesubs/providers/Microsoft.Web/locations/eastasia/managedApis/office365",
+        "type": "Microsoft.Web/locations/managedApis"
+      },
+      "authentication": {
+        "type": "Raw",
+        "scheme": "Basic",
+        "parameter": "www",
+        "value": "xxx"
+      },
+      "connectionRuntimeUrl": "https://localhost:44340/pingpong/"
+    }
+  },
+  "serviceProviderConnections": {
+  }
+}
