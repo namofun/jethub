@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Xylab.Workflows.LogicApps.Engine
+namespace Microsoft.Azure.Workflows.Data.Configuration
 {
     public class EdgeFlowConfigurationSource : AzureConfigurationManager
     {
@@ -40,6 +40,11 @@ namespace Xylab.Workflows.LogicApps.Engine
 
         public void SetAzureStorageAccountCredentials(string connectionString)
         {
+            if (connectionString == null)
+            {
+                throw new ArgumentNullException(nameof(connectionString));
+            }
+
             string[] settingKeys = new[]
             {
                 "CloudStorageAccount.Workflows.BillingDataStorage.ConnectionString",

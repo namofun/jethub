@@ -5,6 +5,7 @@ using System;
 using System.IO.Abstractions;
 using System.Reflection;
 using Xylab.Management.Services;
+using Xylab.Workflows.LogicApps.Engine;
 
 namespace JetHub
 {
@@ -36,6 +37,16 @@ namespace JetHub
             {
                 builder.Services.AddSingleton<IHostSystem, FakeSystem>();
             }
+
+            builder.Services.AddWorkflowEngine(options =>
+            {
+                options.AzureStorageAccountConnectionString = "UseDevelopmentStorage=true";
+                options.InitializeConnectionsFromJson(
+                    System.IO.File.ReadAllText(
+                        System.IO.Path.Combine(
+                            builder.Environment.ContentRootPath,
+                            "connections.json")));
+            });
 
             var app = builder.Build();
 
