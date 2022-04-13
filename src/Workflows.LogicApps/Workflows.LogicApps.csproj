@@ -17,7 +17,6 @@
     <PackageReference Include="Microsoft.Azure.Workflows.Client" Version="1.0.0.6-preview" />
     <PackageReference Include="Microsoft.Azure.Workflows.Runtime" Version="1.0.0.6-preview" />
     <PackageReference Include="Microsoft.Azure.Workflows.ServiceProviders.Common" Version="1.0.0.6-preview" />
-    <PackageReference Include="Microsoft.Azure.Workflows.WebJobs.Extension" Version="1.0.0.6-preview" />
   </ItemGroup>
 
 </Project>

@@ -1,11 +1,10 @@
 ﻿using Microsoft.Azure.Workflows.Data.Configuration;
 using Microsoft.Azure.Workflows.Web.Engines;
 using Microsoft.Azure.Workflows.Worker;
-using System;
 
 namespace Xylab.Workflows.LogicApps.Engine
 {
-    public sealed class WorkflowEngine : IDisposable
+    public sealed class WorkflowEngine
     {
         public EdgeFlowConfiguration Configuration { get; }
 
@@ -21,11 +20,6 @@ namespace Xylab.Workflows.LogicApps.Engine
             Configuration = configuration;
             Management = engine;
             JobsDispatcher = jobsDispatcher;
-        }
-
-        public void Dispose()
-        {
-            JobsDispatcher.Dispose();
         }
     }
 }

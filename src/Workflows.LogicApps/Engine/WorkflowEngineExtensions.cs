@@ -4,6 +4,7 @@ using Microsoft.Azure.Workflows.Data.Definitions;
 using Microsoft.Azure.Workflows.Data.Entities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Threading.Tasks;
 
@@ -41,6 +42,7 @@ namespace Xylab.Workflows.LogicApps.Engine
         public static IServiceCollection AddWorkflowEngine(this IServiceCollection services, Action<WorkflowEngineOptions> configureOptions)
         {
             services.TryAddSingleton<WorkflowEngineProvider>();
+            services.TryAddSingleton<IHostedService, WorkflowEngineHostedService>();
             services.Configure(configureOptions);
             return services;
         }

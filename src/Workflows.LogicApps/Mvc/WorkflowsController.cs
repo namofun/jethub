@@ -25,8 +25,9 @@ namespace Xylab.Workflows.LogicApps.Mvc
 
         protected async Task<IActionResult> InvokeFlowTrigger(Flow flow, string triggerName)
         {
+            var trigger = flow.Definition.GetTrigger(triggerName);
             HttpRequestMessage req = await HttpRequestMessageFactory.FromHttpContext(Request);
-            using (RequestCorrelationContext.Current.Initialize(apiVersion: FlowConstants.PrivatePreview20190601ApiVersion, localizationLanguage: "en-us"))
+            using (RequestCorrelationContext.Current.Initialize(req, apiVersion: FlowConstants.PrivatePreview20190601ApiVersion, localizationLanguage: "en-us"))
             {
                 RequestIdentity clientRequestIdentity = new()
                 {
@@ -37,7 +38,6 @@ namespace Xylab.Workflows.LogicApps.Mvc
                 clientRequestIdentity.AuthorizeRequest(RequestAuthorizationSource.Direct);
                 RequestCorrelationContext.Current.SetAuthenticationIdentity(clientRequestIdentity);
 
-                var trigger = flow.Definition.GetTrigger(triggerName);
                 if (trigger.IsFlowRecurrentTrigger() || trigger.IsNotificationTrigger())
                 {
                     await Engine.Management.RunFlowRecurrentTrigger(flow, flow.FlowName, triggerName);
