@@ -83,7 +83,8 @@ namespace Xylab.Workflows.LogicApps.Engine
             return new WorkflowEngine(
                 flowConfiguration,
                 new EdgeFlowWebManagementEngine(flowConfiguration, httpConfiguration),
-                new EdgeFlowJobsDispatcher(flowConfiguration, httpConfiguration));
+                new EdgeFlowJobsDispatcher(flowConfiguration, httpConfiguration),
+                httpConfiguration);
         }
 
         internal void SetEngine(WorkflowEngine engine)
