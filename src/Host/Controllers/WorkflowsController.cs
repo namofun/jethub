@@ -3,6 +3,7 @@ using Microsoft.Azure.Workflows.Common.ErrorResponses;
 using Microsoft.Azure.Workflows.Data.Definitions;
 using Microsoft.Azure.Workflows.Data.Entities;
 using Microsoft.Azure.Workflows.Templates.Schema;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,6 +20,13 @@ namespace JetHub.Controllers
         public WorkflowsController(WorkflowEngineProvider workflowEngineProvider)
         {
             Engine = workflowEngineProvider.GetEngineAsync().Result;
+        }
+
+        [HttpGet("workflows")]
+        public async Task<IActionResult> GetFlows()
+        {
+            SegmentedList<Flow> flows = await Engine.FindFlowsSegmented();
+            return Json(flows.Select(Engine.GetFlowDefinition));
         }
 
         [HttpGet("workflows/{workflowId}")]
@@ -91,6 +99,32 @@ namespace JetHub.Controllers
             Flow flow = await Engine.FindFlowByIdOrName(workflowId).NotNull();
             FlowRun run = await Engine.FindFlowRunBySequenceId(flow, sequenceId).NotNull();
             return Json(Engine.GetFlowRunDefinition(flow, run), run.EntityTag);
+        }
+
+        [HttpGet("workflows/{workflowId}/runs/{sequenceId}/contents/{contentName}")]
+        public async Task<IActionResult> GetRunContents([FromRoute] string workflowId, [FromRoute] string sequenceId, [FromRoute] string contentName)
+        {
+            Flow flow = await Engine.FindFlowByIdOrName(workflowId).NotNull();
+            FlowRun run = await Engine.FindFlowRunBySequenceId(flow, sequenceId).NotNull();
+
+            JToken result = contentName switch
+            {
+                "TriggerInputs" => await Engine.GetContentLink(flow, run.FlowRunSequenceId, run.Trigger?.InputsLink),
+                "TriggerOutputs" => await Engine.GetContentLink(flow, run.FlowRunSequenceId, run.Trigger?.OutputsLink),
+                "TriggerError" => run.Trigger?.Error,
+                "ResponseInputs" => await Engine.GetContentLink(flow, run.FlowRunSequenceId, run.Response?.InputsLink),
+                "ResponseOutputs" => await Engine.GetContentLink(flow, run.FlowRunSequenceId, run.Response?.OutputsLink),
+                "ResponseError" => run.Response?.Error,
+                "Error" => run.Error,
+                _ => throw new ErrorResponseMessageException(
+                    System.Net.HttpStatusCode.NotFound,
+                    ErrorResponseCode.WorkflowRunOperationNotFound,
+                    "No content found."),
+            };
+
+            return Content(
+                Newtonsoft.Json.JsonConvert.SerializeObject(result ?? JRaw.CreateNull(), Newtonsoft.Json.Formatting.Indented),
+                "application/json");
         }
 
         [HttpPost("workflows/{workflowName}")]

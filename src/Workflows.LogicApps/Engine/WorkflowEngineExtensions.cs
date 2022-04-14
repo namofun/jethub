@@ -43,6 +43,21 @@ namespace Xylab.Workflows.LogicApps.Engine
                     flowName: flowName);
         }
 
+        public static async Task<SegmentedList<Flow>> FindFlowsSegmented(
+            this WorkflowEngine engine,
+            FlowStorageFilter? filter = null,
+            int? top = null,
+            DataContinuationToken? continuationToken = null)
+        {
+            return new SegmentedList<Flow>(
+                await engine.GetRegionalDataProvider()
+                    .FindFlowsSegmentedBySubscription(
+                        subscriptionId: FlowConfiguration.EdgeSubscriptionId,
+                        filter: filter ?? new FlowStorageFilter(),
+                        top: top,
+                        continuationToken: continuationToken));
+        }
+
         public static async Task<Flow> FindFlowByIdOrName(this WorkflowEngine engine, string id)
         {
             return (await engine.FindFlowByIdentifier(id))
@@ -75,6 +90,15 @@ namespace Xylab.Workflows.LogicApps.Engine
                 .FindFlowRun(
                     flowId: flow.FlowId,
                     flowRunSequenceId: sequenceId);
+        }
+
+        public static Task<JToken> GetContentLink(this WorkflowEngine engine, Flow flow, string flowContentSequenceId, ContentLink contentLink)
+        {
+            return engine.GetScaleUnitDataProvider(flow.ScaleUnit)
+                .DownloadFlowOperationContent(
+                    flowId: flow.FlowId,
+                    flowContentSequenceId: flowContentSequenceId,
+                    contentLink: contentLink);
         }
 
         public static async Task<SegmentedList<Flow>> FindFlowVersionsSegmented(

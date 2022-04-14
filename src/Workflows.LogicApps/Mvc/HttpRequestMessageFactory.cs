@@ -18,6 +18,7 @@ namespace Xylab.Workflows.LogicApps.Mvc
             {
                 MemoryStream stream = new();
                 await request.Body.CopyToAsync(stream);
+                stream.Position = 0;
                 req.Content = new StreamContent(stream);
             }
 
