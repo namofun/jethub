@@ -45,6 +45,18 @@ namespace Xylab.Management.Services
             }
         }
 
+        public bool TryChangeMode(string filePath, uint mode)
+        {
+            if (Interop.Libc.chmod(filePath, mode) == -1)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
         public void SetUmask(uint cmask, out uint originalCmask)
         {
             originalCmask = Interop.Libc.umask(cmask);

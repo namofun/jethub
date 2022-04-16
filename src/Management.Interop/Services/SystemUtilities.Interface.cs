@@ -19,6 +19,8 @@ namespace Xylab.Management.Services
 
         void ChangeMode(string filePath, uint mode);
 
+        bool TryChangeMode(string filePath, uint mode);
+
         void SetUmask(uint cmask, out uint originalCmask);
     }
 }
