@@ -34,6 +34,17 @@ namespace Xylab.Workflows.LogicApps.Mvc
             }
         }
 
+        public static void NotNull(FlowRunAction run)
+        {
+            if (run == null)
+            {
+                throw new ErrorResponseMessageException(
+                    HttpStatusCode.NotFound,
+                    ErrorResponseCode.WorkflowRunActionNotFound,
+                    "Didn't found workflow run action with corresponding ID or name.");
+            }
+        }
+
         public static async Task<Flow> NotNull(this Task<Flow> task, ErrorResponseCode code = ErrorResponseCode.WorkflowNotFound)
         {
             Flow flow = await task.ConfigureAwait(false);
@@ -46,6 +57,13 @@ namespace Xylab.Workflows.LogicApps.Mvc
             FlowRun run = await task.ConfigureAwait(false);
             Validation.NotNull(run);
             return run;
+        }
+
+        public static async Task<FlowRunAction> NotNull(this Task<FlowRunAction> task)
+        {
+            FlowRunAction action = await task.ConfigureAwait(false);
+            Validation.NotNull(action);
+            return action;
         }
 
         public static async Task<TValue> GetContentJson<TValue>(HttpRequest request)

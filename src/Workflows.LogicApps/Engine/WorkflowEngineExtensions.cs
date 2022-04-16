@@ -84,12 +84,31 @@ namespace Xylab.Workflows.LogicApps.Engine
                         continuationToken: continuationToken));
         }
 
-        public static Task<FlowRun> FindFlowRunBySequenceId(this WorkflowEngine engine, Flow flow, string sequenceId)
+        public static Task<FlowRun> FindFlowRun(this WorkflowEngine engine, Flow flow, string sequenceId)
         {
             return engine.GetScaleUnitDataProvider(flow.ScaleUnit)
                 .FindFlowRun(
                     flowId: flow.FlowId,
                     flowRunSequenceId: sequenceId);
+        }
+
+        public static Task<FlowRunAction[]> FindFlowRunActions(this WorkflowEngine engine, Flow flow, FlowRun run)
+        {
+            return engine.GetScaleUnitDataProvider(flow.ScaleUnit)
+                .FindFlowRunActions(
+                    platformOptions: run.PlatformOptions,
+                    flowId: flow.FlowId,
+                    flowRunSequenceId: run.FlowRunSequenceId);
+        }
+
+        public static Task<FlowRunAction> FindFlowRunAction(this WorkflowEngine engine, Flow flow, FlowRun run, string actionName)
+        {
+            return engine.GetScaleUnitDataProvider(flow.ScaleUnit)
+                .FindFlowRunAction(
+                    platformOptions: run.PlatformOptions,
+                    flowId: flow.FlowId,
+                    flowRunSequenceId: run.FlowRunSequenceId,
+                    actionName: actionName);
         }
 
         public static Task<JToken> GetContentLink(this WorkflowEngine engine, Flow flow, string flowContentSequenceId, ContentLink contentLink)
@@ -218,16 +237,10 @@ namespace Xylab.Workflows.LogicApps.Engine
             EndpointConfigurationProvider endpoint = engine.GetEndpointConfigurationProvider();
             FlowDataPlaneContext context = new(flow);
 
-            CachedFlowAccessKey accessKey = engine.GetScaleUnitCacheProvider(context, flow.ScaleUnit)
-                .FindFlowAccessKey(
-                    flowId: flow.FlowId,
-                    accessKeyName: FlowConstants.DefaultFlowAccessKeyName)
-                .Result;
-
             return run.ToDefinition(
                 endpoint: endpoint.GetRegionalEndpoint(context),
                 flow: flow,
-                flowAccessKey: accessKey,
+                flowAccessKey: emptyAccessKey,
                 endpointsConfiguration: endpoint.GetFlowEndpointsConfiguration(context),
                 subscriptionId: FlowConfiguration.EdgeSubscriptionId,
                 resourceGroupName: FlowConfiguration.EdgeResourceGroupName,
@@ -235,6 +248,32 @@ namespace Xylab.Workflows.LogicApps.Engine
                 flowRunSequenceId: run.FlowRunSequenceId,
                 apiVersion: FlowConstants.GeneralAvailabilityApiVersion);
         }
+
+        public static FlowRunActionDefinition GetFlowRunActionDefinition(this WorkflowEngine engine, Flow flow, FlowRun run, FlowRunAction action)
+        {
+            EndpointConfigurationProvider endpoint = engine.GetEndpointConfigurationProvider();
+            FlowDataPlaneContext context = new(flow);
+
+            return action.ToDefinition(
+                flow: flow,
+                flowAccessKey: emptyAccessKey,
+                endpoint: endpoint.GetRegionalEndpoint(context),
+                subscriptionId: FlowConfiguration.EdgeSubscriptionId,
+                resourceGroupName: FlowConfiguration.EdgeResourceGroupName,
+                flowName: flow.FlowName,
+                triggerName: run.TriggerName,
+                inputs: engine.GetContentLink(flow, run.FlowRunSequenceId, action.InputsLink).Result,
+                outputs: engine.GetContentLink(flow, run.FlowRunSequenceId, action.OutputsLink).Result,
+                apiVersion: FlowConstants.GeneralAvailabilityApiVersion);
+        }
+
+        private static readonly CachedFlowAccessKey emptyAccessKey = new()
+        {
+            SecondaryKey = string.Empty,
+            PrimaryKey = string.Empty,
+            FlowAccessKeyName = FlowConstants.DefaultFlowAccessKeyName,
+            FlowId = string.Empty,
+        };
 
         public static IServiceCollection AddWorkflowEngine(this IServiceCollection services, Action<WorkflowEngineOptions> configureOptions)
         {

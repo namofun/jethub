@@ -97,7 +97,7 @@ namespace JetHub.Controllers
         public async Task<IActionResult> GetRun([FromRoute] string workflowId, [FromRoute] string sequenceId)
         {
             Flow flow = await Engine.FindFlowByIdOrName(workflowId).NotNull();
-            FlowRun run = await Engine.FindFlowRunBySequenceId(flow, sequenceId).NotNull();
+            FlowRun run = await Engine.FindFlowRun(flow, sequenceId).NotNull();
             return Json(Engine.GetFlowRunDefinition(flow, run), run.EntityTag);
         }
 
@@ -105,7 +105,7 @@ namespace JetHub.Controllers
         public async Task<IActionResult> GetRunContents([FromRoute] string workflowId, [FromRoute] string sequenceId, [FromRoute] string contentName)
         {
             Flow flow = await Engine.FindFlowByIdOrName(workflowId).NotNull();
-            FlowRun run = await Engine.FindFlowRunBySequenceId(flow, sequenceId).NotNull();
+            FlowRun run = await Engine.FindFlowRun(flow, sequenceId).NotNull();
 
             JToken result = contentName switch
             {
@@ -115,6 +115,47 @@ namespace JetHub.Controllers
                 "ResponseInputs" => await Engine.GetContentLink(flow, run.FlowRunSequenceId, run.Response?.InputsLink),
                 "ResponseOutputs" => await Engine.GetContentLink(flow, run.FlowRunSequenceId, run.Response?.OutputsLink),
                 "ResponseError" => run.Response?.Error,
+                "Error" => run.Error,
+                _ => throw new ErrorResponseMessageException(
+                    System.Net.HttpStatusCode.NotFound,
+                    ErrorResponseCode.WorkflowRunOperationNotFound,
+                    "No content found."),
+            };
+
+            return Content(
+                Newtonsoft.Json.JsonConvert.SerializeObject(result ?? JRaw.CreateNull(), Newtonsoft.Json.Formatting.Indented),
+                "application/json");
+        }
+
+        [HttpGet("workflows/{workflowId}/runs/{sequenceId}/actions")]
+        public async Task<IActionResult> GetRunActions([FromRoute] string workflowId, [FromRoute] string sequenceId)
+        {
+            Flow flow = await Engine.FindFlowByIdOrName(workflowId).NotNull();
+            FlowRun run = await Engine.FindFlowRun(flow, sequenceId).NotNull();
+            FlowRunAction[] actions = await Engine.FindFlowRunActions(flow, run);
+            return Json(actions.Select(action => Engine.GetFlowRunActionDefinition(flow, run, action)), run.EntityTag);
+        }
+
+        [HttpGet("workflows/{workflowId}/runs/{sequenceId}/actions/{actionName}")]
+        public async Task<IActionResult> GetRunAction([FromRoute] string workflowId, [FromRoute] string sequenceId, [FromRoute] string actionName)
+        {
+            Flow flow = await Engine.FindFlowByIdOrName(workflowId).NotNull();
+            FlowRun run = await Engine.FindFlowRun(flow, sequenceId).NotNull();
+            FlowRunAction action = await Engine.FindFlowRunAction(flow, run, actionName).NotNull();
+            return Json(Engine.GetFlowRunActionDefinition(flow, run, action), action.EntityTag);
+        }
+
+        [HttpGet("workflows/{workflowId}/runs/{sequenceId}/actions/{actionName}/contents/{contentName}")]
+        public async Task<IActionResult> GetRunActionContents([FromRoute] string workflowId, [FromRoute] string sequenceId, [FromRoute] string actionName, [FromRoute] string contentName)
+        {
+            Flow flow = await Engine.FindFlowByIdOrName(workflowId).NotNull();
+            FlowRun run = await Engine.FindFlowRun(flow, sequenceId).NotNull();
+            FlowRunAction action = await Engine.FindFlowRunAction(flow, run, actionName).NotNull();
+
+            JToken result = contentName switch
+            {
+                "ActionInputs" => await Engine.GetContentLink(flow, run.FlowRunSequenceId, action?.InputsLink),
+                "ActionOutputs" => await Engine.GetContentLink(flow, run.FlowRunSequenceId, action?.OutputsLink),
                 "Error" => run.Error,
                 _ => throw new ErrorResponseMessageException(
                     System.Net.HttpStatusCode.NotFound,
