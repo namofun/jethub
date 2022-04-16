@@ -28,15 +28,8 @@ namespace Xylab.Management.Interop
             public string pw_shell;
         }
 
-        [DllImport(libc_so_6)]
-        private static unsafe extern int getpwuid_r(uint uid, out passwd_r pwd, byte* buffer, ulong bufsize, out IntPtr result);
-
-        public static unsafe passwd_t? getpwuid(uint uid)
+        private static passwd_t ConvertPasswd(in passwd_r pwd)
         {
-            byte* buffer = stackalloc byte[1024];
-            int retVal = getpwuid_r(uid, out passwd_r pwd, buffer, 1024, out IntPtr ptr);
-            if (retVal != 0 || ptr == IntPtr.Zero) return null;
-
             return new passwd_t
             {
                 pw_name = Marshal.PtrToStringAnsi(pwd.pw_name),
@@ -47,6 +40,30 @@ namespace Xylab.Management.Interop
                 pw_dir = Marshal.PtrToStringAnsi(pwd.pw_dir),
                 pw_shell = Marshal.PtrToStringAnsi(pwd.pw_shell),
             };
+        }
+
+        [DllImport(libc_so_6)]
+        private static unsafe extern int getpwuid_r(uint uid, out passwd_r pwd, byte* buffer, ulong bufsize, out IntPtr result);
+
+        [DllImport(libc_so_6)]
+        private static unsafe extern int getpwnam_r(IntPtr name, out passwd_r pwd, byte* buffer, ulong bufsize, out IntPtr result);
+
+        public static unsafe passwd_t? getpwuid(uint uid)
+        {
+            byte* buffer = stackalloc byte[1024];
+            int retVal = getpwuid_r(uid, out passwd_r pwd, buffer, 1024, out IntPtr ptr);
+            if (retVal != 0 || ptr == IntPtr.Zero) return null;
+            return ConvertPasswd(pwd);
+        }
+
+        public static unsafe passwd_t? getpwnam(string name)
+        {
+            byte* buffer = stackalloc byte[1024];
+            IntPtr name_r = Marshal.StringToHGlobalAnsi(name);
+            int retVal = getpwnam_r(name_r, out passwd_r pwd, buffer, 1024, out IntPtr ptr);
+            Marshal.FreeHGlobal(name_r);
+            if (retVal != 0 || ptr == IntPtr.Zero) return null;
+            return ConvertPasswd(pwd);
         }
     }
 }

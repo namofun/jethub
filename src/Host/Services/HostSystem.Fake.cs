@@ -126,5 +126,31 @@ namespace Xylab.Management.Services
                 Uptime = TimeSpan.FromSeconds(((3 * 24 + 5) * 60 + 16) * 60 + 16),
             });
         }
+
+        public Task<UserInformation> GetUserByIdAsync(int uid)
+        {
+            return Task.FromResult(new UserInformation
+            {
+                Shell = "/bin/bash",
+                Comment = string.Empty,
+                GroupId = 0,
+                UserId = 0,
+                UserName = "root",
+                HomeDirectory = "/root",
+            });
+        }
+
+        public Task<UserInformation> GetUserByNameAsync(string name)
+        {
+            return Task.FromResult(new UserInformation
+            {
+                Shell = "/bin/bash",
+                Comment = string.Empty,
+                GroupId = 0,
+                UserId = 0,
+                UserName = "root",
+                HomeDirectory = "/root",
+            });
+        }
     }
 }
