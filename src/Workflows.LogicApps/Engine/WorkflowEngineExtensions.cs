@@ -149,57 +149,41 @@ namespace Xylab.Workflows.LogicApps.Engine
             string triggerName,
             FlowTemplateTrigger trigger,
             HttpRequestMessage req,
-            ClaimsPrincipal user,
             CancellationToken cancellationToken)
         {
-            using (RequestCorrelationContext.Current.Initialize(
-                req,
-                apiVersion: FlowConstants.PrivatePreview20190601ApiVersion,
-                localizationLanguage: "en-us"))
+            if (trigger.IsFlowRecurrentTrigger() || trigger.IsNotificationTrigger())
             {
-                RequestIdentity clientRequestIdentity = new()
+                await engine.Management.RunFlowRecurrentTrigger(flow, flow.FlowName, triggerName);
+
+                return new NewtonsoftJsonResult(
+                    await engine.GetScaleUnitJobsProvider(flow.ScaleUnit)
+                        .GetFlowRecurrentTriggerJob(
+                            flowId: flow.FlowId,
+                            triggerName: triggerName))
                 {
-                    Claims = user.Claims.ToDictionary(k => k.Type, v => v.Value),
-                    IsAuthenticated = user.Identity?.IsAuthenticated ?? false,
+                    StatusCode = (int)System.Net.HttpStatusCode.Accepted
                 };
+            }
+            else
+            {
+                FlowHttpEngine httpEngine = engine.GetFlowHttpEngine();
 
-                clientRequestIdentity.AuthorizeRequest(RequestAuthorizationSource.Direct);
-                RequestCorrelationContext.Current.SetAuthenticationIdentity(clientRequestIdentity);
+                JToken triggerOutput = await httpEngine.GetOperationOutput(
+                    request: req,
+                    flowLogger: engine.Configuration.EventSource,
+                    cancellationToken);
 
-                if (trigger.IsFlowRecurrentTrigger() || trigger.IsNotificationTrigger())
-                {
-                    await engine.Management.RunFlowRecurrentTrigger(flow, flow.FlowName, triggerName);
-
-                    return new NewtonsoftJsonResult(
-                        await engine.GetScaleUnitJobsProvider(flow.ScaleUnit)
-                            .GetFlowRecurrentTriggerJob(
-                                flowId: flow.FlowId,
-                                triggerName: triggerName))
-                    {
-                        StatusCode = (int)System.Net.HttpStatusCode.Accepted
-                    };
-                }
-                else
-                {
-                    FlowHttpEngine httpEngine = engine.GetFlowHttpEngine();
-
-                    JToken triggerOutput = await httpEngine.GetOperationOutput(
+                return new HttpResponseMessageResult(
+                    await engine.Management.RunFlowPushTrigger(
                         request: req,
-                        flowLogger: engine.Configuration.EventSource,
-                        cancellationToken);
-
-                    return new HttpResponseMessageResult(
-                        await engine.Management.RunFlowPushTrigger(
-                            request: req,
-                            context: new FlowDataPlaneContext(flow),
-                            trigger: trigger,
-                            subscriptionId: FlowConfiguration.EdgeSubscriptionId,
-                            resourceGroup: FlowConfiguration.EdgeResourceGroupName,
-                            flowName: flow.FlowName,
-                            triggerName: triggerName,
-                            triggerOutput: triggerOutput,
-                            clientCancellationToken: cancellationToken));
-                }
+                        context: new FlowDataPlaneContext(flow),
+                        trigger: trigger,
+                        subscriptionId: FlowConfiguration.EdgeSubscriptionId,
+                        resourceGroup: FlowConfiguration.EdgeResourceGroupName,
+                        flowName: flow.FlowName,
+                        triggerName: triggerName,
+                        triggerOutput: triggerOutput,
+                        clientCancellationToken: cancellationToken));
             }
         }
 
@@ -232,7 +216,7 @@ namespace Xylab.Workflows.LogicApps.Engine
                 apiVersion: FlowConstants.GeneralAvailabilityApiVersion);
         }
 
-        public static FlowRunDefinition GetFlowRunDefinition(this WorkflowEngine engine, Flow flow, FlowRun run)
+        public static FlowRunDefinition GetFlowRunDefinition(this WorkflowEngine engine, Flow flow, FlowRun run, FlowRunAction[]? actions = null)
         {
             EndpointConfigurationProvider endpoint = engine.GetEndpointConfigurationProvider();
             FlowDataPlaneContext context = new(flow);
@@ -246,7 +230,8 @@ namespace Xylab.Workflows.LogicApps.Engine
                 resourceGroupName: FlowConfiguration.EdgeResourceGroupName,
                 flowName: flow.FlowName,
                 flowRunSequenceId: run.FlowRunSequenceId,
-                apiVersion: FlowConstants.GeneralAvailabilityApiVersion);
+                apiVersion: FlowConstants.GeneralAvailabilityApiVersion,
+                actions: actions);
         }
 
         public static FlowRunActionDefinition GetFlowRunActionDefinition(this WorkflowEngine engine, Flow flow, FlowRun run, FlowRunAction action)

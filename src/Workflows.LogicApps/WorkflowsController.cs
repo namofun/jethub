@@ -3,6 +3,7 @@ using Microsoft.Azure.Workflows.Common.ErrorResponses;
 using Microsoft.Azure.Workflows.Data.Definitions;
 using Microsoft.Azure.Workflows.Data.Entities;
 using Microsoft.Azure.Workflows.Templates.Schema;
+using Microsoft.WindowsAzure.ResourceStack.Common.Instrumentation;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ using Xylab.Workflows.LogicApps.Engine;
 
 namespace Xylab.Workflows.LogicApps.Mvc
 {
+    [RequestCorrelationFilter]
     [ErrorResponseMessageExceptionFilter]
     public class WorkflowsController : ControllerBase
     {
@@ -72,6 +74,7 @@ namespace Xylab.Workflows.LogicApps.Mvc
         [Route("workflows/{workflowId}/triggers/{triggerName}/paths/invoke")]
         public async Task<IActionResult> InvokeTrigger([FromRoute] string workflowId, [FromRoute] string triggerName)
         {
+            RequestCorrelationContext.Current.AuthenticationIdentity.AuthorizedBy = RequestAuthorizationSource.Direct;
             Flow flow = await Engine.FindFlowByIdOrName(workflowId).NotNull();
             FlowTemplateTrigger trigger = Validation.Trigger(flow, triggerName);
 
@@ -80,7 +83,6 @@ namespace Xylab.Workflows.LogicApps.Mvc
                 triggerName: triggerName,
                 trigger: trigger,
                 req: await HttpRequestMessageFactory.FromHttpContext(Request),
-                user: User,
                 cancellationToken: HttpContext.RequestAborted);
         }
 
@@ -97,7 +99,8 @@ namespace Xylab.Workflows.LogicApps.Mvc
         {
             Flow flow = await Engine.FindFlowByIdOrName(workflowId).NotNull();
             FlowRun run = await Engine.FindFlowRun(flow, sequenceId).NotNull();
-            return Json(Engine.GetFlowRunDefinition(flow, run), run.EntityTag);
+            FlowRunAction[] actions = await Engine.FindFlowRunActions(flow, run);
+            return Json(Engine.GetFlowRunDefinition(flow, run, actions), run.EntityTag);
         }
 
         [HttpGet("workflows/{workflowId}/runs/{sequenceId}/contents/{contentName}")]
@@ -187,7 +190,7 @@ namespace Xylab.Workflows.LogicApps.Mvc
         private NewtonsoftJsonResult Json(IEnumerable<ResourceDefinition> resources, string etag = null)
         {
             if (etag != null) Response.Headers.ETag = etag;
-            return new NewtonsoftJsonResult(new { value = resources });
+            return new NewtonsoftJsonResult(new { value = resources.ToList() });
         }
     }
 }
