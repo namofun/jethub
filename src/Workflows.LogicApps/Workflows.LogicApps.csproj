@@ -5,8 +5,10 @@
     <Nullable>enable</Nullable>
     <AssemblyName>Xylab.Workflows.LogicApps</AssemblyName>
     <RootNamespace>Xylab.Workflows.LogicApps</RootNamespace>
-    <PlatformTarget>x64</PlatformTarget>
+    <NoWarn>$(NoWarn);MSB3270;NU5104</NoWarn>
   </PropertyGroup>
+
+  <Import Project="..\..\build\NugetPackage.Backend.props" />
 
   <ItemGroup>
     <EmbeddedResource Include="Engine\AzureConfig.json" />
