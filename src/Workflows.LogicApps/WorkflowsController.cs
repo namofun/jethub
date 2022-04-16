@@ -8,9 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xylab.Workflows.LogicApps.Engine;
-using Xylab.Workflows.LogicApps.Mvc;
 
-namespace JetHub.Controllers
+namespace Xylab.Workflows.LogicApps.Mvc
 {
     [ErrorResponseMessageExceptionFilter]
     public class WorkflowsController : ControllerBase

@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\Workflows.LogicApps\WorkflowsController.cs" Link="Controllers\WorkflowsController.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="SatelliteSite.Abstraction" Version="$(SubstrateVersion)" />
   </ItemGroup>
 
