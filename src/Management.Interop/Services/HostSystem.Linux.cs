@@ -181,17 +181,5 @@ namespace Xylab.Management.Services
                 LoadAverages = Interop.Libc.sysinfo_loads_to100(sysinfo.loads),
             };
         }
-
-        public Task<UserInformation> GetUserByIdAsync(int uid)
-        {
-            var passwd = Interop.Libc.getpwuid((uint)uid);
-            return Task.FromResult(passwd.HasValue ? UserInformation.From(passwd.Value) : null);
-        }
-
-        public Task<UserInformation> GetUserByNameAsync(string name)
-        {
-            var passwd = Interop.Libc.getpwnam(name);
-            return Task.FromResult(passwd.HasValue ? UserInformation.From(passwd.Value) : null);
-        }
     }
 }

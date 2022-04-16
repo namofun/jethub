@@ -48,6 +48,18 @@ namespace Xylab.Management.Interop
         [DllImport(libc_so_6)]
         private static unsafe extern int getpwnam_r(IntPtr name, out passwd_r pwd, byte* buffer, ulong bufsize, out IntPtr result);
 
+        [DllImport(libc_so_6)]
+        public static unsafe extern uint getuid();
+
+        [DllImport(libc_so_6)]
+        public static unsafe extern uint geteuid();
+
+        [DllImport(libc_so_6)]
+        public static unsafe extern uint getgid();
+
+        [DllImport(libc_so_6)]
+        public static unsafe extern uint getegid();
+
         public static unsafe passwd_t? getpwuid(uint uid)
         {
             byte* buffer = stackalloc byte[1024];

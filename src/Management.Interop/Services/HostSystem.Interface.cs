@@ -19,9 +19,5 @@ namespace Xylab.Management.Services
         Task<List<ProcessInformation>> GetProcessesAsync();
 
         Task<List<ServiceInformation>> GetServicesAsync();
-
-        Task<UserInformation> GetUserByIdAsync(int uid);
-
-        Task<UserInformation> GetUserByNameAsync(string name);
     }
 }
