@@ -6,6 +6,7 @@
     <AssemblyName>Xylab.Workflows.LogicApps</AssemblyName>
     <RootNamespace>Xylab.Workflows.LogicApps</RootNamespace>
     <NoWarn>$(NoWarn);MSB3270;NU5104</NoWarn>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <Import Project="..\..\build\NugetPackage.Backend.props" />
