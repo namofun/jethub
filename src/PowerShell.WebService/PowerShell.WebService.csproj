@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PowerShell.Cmdlets\PowerShell.Cmdlets.csproj" />
+    <ProjectReference Include="..\PowerShell.Cmdlets\Automation.Bundle.csproj" />
   </ItemGroup>
 
 </Project>

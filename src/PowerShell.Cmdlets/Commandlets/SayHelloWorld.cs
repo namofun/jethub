@@ -1,8 +1,10 @@
-﻿using System.Management.Automation;
+﻿using System;
+using System.Management.Automation;
 
-namespace Xylab.Management.PowerShell.Cmdlets
+namespace Xylab.Management.Automation.Commandlets
 {
     [Cmdlet("Say", "HelloWorld")]
+    [Authorization(Role.ViewOnly)]
     public class SayHelloWorld : Cmdlet
     {
         [Parameter]

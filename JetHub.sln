@@ -39,7 +39,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workflows.LogicApps", "src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PowerShell.WebService", "src\PowerShell.WebService\PowerShell.WebService.csproj", "{E30D4FA5-C362-4036-9840-E0E1A43076F7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PowerShell.Cmdlets", "src\PowerShell.Cmdlets\PowerShell.Cmdlets.csproj", "{B10A9A4F-22E0-4835-8EA0-705D2D83B69B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.Bundle", "src\PowerShell.Cmdlets\Automation.Bundle.csproj", "{B10A9A4F-22E0-4835-8EA0-705D2D83B69B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

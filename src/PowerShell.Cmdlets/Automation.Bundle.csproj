@@ -2,10 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AssemblyName>Xylab.Management.PowerShell.Cmdlets</AssemblyName>
-    <RootNamespace>Xylab.Management.PowerShell.Cmdlets</RootNamespace>
+    <AssemblyName>Xylab.Management.Automation.Bundle</AssemblyName>
+    <RootNamespace>Xylab.Management.Automation</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
