@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Xylab.Management.PowerShell.WebService</AssemblyName>
+    <RootNamespace>Xylab.Management.PowerShell.WebService</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.PowerShell.SDK" Version="$(PowerShellVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PowerShell.Cmdlets\PowerShell.Cmdlets.csproj" />
+  </ItemGroup>
+
+</Project>
