@@ -12,11 +12,13 @@
 
   <ItemGroup>
     <PackageReference Include="SatelliteSite.Abstraction" Version="$(SubstrateVersion)" />
+    <PackageReference Include="Microsoft.PowerShell.SDK" Version="$(PowerShellVersion)" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Management.Interop\Management.Interop.csproj" />
     <ProjectReference Include="..\Management.ProjectKudu\Management.Kudu.csproj" />
+    <ProjectReference Include="..\PowerShell.Cmdlets\Automation.Bundle.csproj" />
     <ProjectReference Include="..\Workflows.LogicApps\Workflows.LogicApps.csproj" />
   </ItemGroup>
 
