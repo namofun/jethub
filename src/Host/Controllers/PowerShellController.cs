@@ -14,7 +14,7 @@ namespace JetHub.Controllers
         [HttpPost("{cmdletName}")]
         public async Task<IActionResult> Cmdlet([FromRoute] string cmdletName)
         {
-            if (!Request.ContentType!.StartsWith("application/xml"))
+            if (Request.ContentType == null || !Request.ContentType.StartsWith("application/xml"))
             {
                 Response.Headers.Add("X-PSWS-Error", "Invalid request type.");
                 return new BadRequestResult();
@@ -36,6 +36,33 @@ namespace JetHub.Controllers
             using Runspace runspace = Bundle.CreateRunspace();
             using PowerShell pwsh = PowerShell.Create(runspace);
             pwsh.AddCommand(cmdletName).AddParameters(boundParameters);
+            var result = await pwsh.InvokeAsync();
+
+            return new ContentResult
+            {
+                Content = PSSerializer.Serialize(result),
+                ContentType = "application/xml"
+            };
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Script()
+        {
+            if (Request.ContentType == null || !Request.ContentType.StartsWith("text/plain"))
+            {
+                Response.Headers.Add("X-PSWS-Error", "Invalid request type.");
+                return new BadRequestResult();
+            }
+
+            string ps1Content;
+            using (StreamReader sr = new(Request.Body))
+            {
+                ps1Content = await sr.ReadToEndAsync();
+            }
+
+            using Runspace runspace = Bundle.CreateRunspace();
+            using PowerShell pwsh = PowerShell.Create(runspace);
+            pwsh.AddScript(ps1Content);
             var result = await pwsh.InvokeAsync();
 
             return new ContentResult
