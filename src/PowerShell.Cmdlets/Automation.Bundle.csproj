@@ -5,9 +5,15 @@
     <Nullable>enable</Nullable>
     <AssemblyName>Xylab.Management.Automation.Bundle</AssemblyName>
     <RootNamespace>Xylab.Management.Automation</RootNamespace>
+    <PackageId>Xylab.Management.Automation</PackageId>
   </PropertyGroup>
 
   <Import Project="..\..\build\NugetPackage.Backend.props" />
+
+  <ItemGroup>
+    <Compile Remove="PowerShellController.cs" />
+    <Content Include="PowerShellController.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="System.Management.Automation" Version="$(PowerShellVersion)" />

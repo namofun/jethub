@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Compile Include="..\Workflows.LogicApps\WorkflowsController.cs" Link="Controllers\WorkflowsController.cs" />
+    <Compile Include="..\PowerShell.Cmdlets\PowerShellController.cs" Link="Controllers\PowerShellController.cs" />
   </ItemGroup>
 
   <ItemGroup>

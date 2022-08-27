@@ -4,9 +4,8 @@ using System.IO;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Threading.Tasks;
-using Xylab.Management.Automation;
 
-namespace JetHub.Controllers
+namespace Xylab.Management.Automation.Mvc
 {
     [Route("/api/pwsh/[action]")]
     public class PowerShellController : ControllerBase
