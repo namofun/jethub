@@ -5,7 +5,7 @@ using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Threading.Tasks;
 
-namespace Xylab.Management.Automation.Mvc
+namespace Xylab.Management.Automation.WebServices
 {
     [Route("/api/pwsh/[action]")]
     public class PowerShellController : ControllerBase

@@ -26,7 +26,7 @@ namespace JetHub
                 options.Version = typeof(Program).Assembly.GetName().Version?.ToString() ?? "0.0.0.0";
             });
 
-            builder.Services.AddSignalR();
+            builder.Services.AddSignalR(o => o.EnableDetailedErrors = true);
 
             builder.Services.AddSingleton<IFileSystemV2, FileSystemV2>();
             if (Environment.OSVersion.Platform == PlatformID.Unix)
@@ -55,6 +55,7 @@ namespace JetHub
 
             app.MapControllers();
             app.MapHub<LogHub>("/api/log-stream");
+            app.MapHub<Xylab.Management.Automation.WebServices.PowerShellHub>("/api/psws");
 
             app.Run();
         }

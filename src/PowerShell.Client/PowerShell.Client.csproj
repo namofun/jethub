@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Xylab.Management.PowerShell.Client</AssemblyName>
+    <RootNamespace>Xylab.Management.PowerShell.Client</RootNamespace>
+    <PackageId>Xylab.Management.PowerShell.Client</PackageId>
+  </PropertyGroup>
+
+  <Import Project="..\..\build\NugetPackage.Backend.props" />
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="$(AspNetCoreVersion)" />
+    <PackageReference Include="System.Management.Automation" Version="$(PowerShellVersion)" />
+  </ItemGroup>
+
+</Project>

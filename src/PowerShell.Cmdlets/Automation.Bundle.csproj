@@ -11,8 +11,10 @@
   <Import Project="..\..\build\NugetPackage.Backend.props" />
 
   <ItemGroup>
-    <Compile Remove="PowerShellController.cs" />
-    <Content Include="PowerShellController.cs" />
+    <Compile Remove="WebServices\PowerShellController.cs" />
+    <Content Include="WebServices\PowerShellController.cs" />
+    <Compile Remove="WebServices\PowerShellHub.cs" />
+    <Content Include="WebServices\PowerShellHub.cs" />
   </ItemGroup>
 
   <ItemGroup>
