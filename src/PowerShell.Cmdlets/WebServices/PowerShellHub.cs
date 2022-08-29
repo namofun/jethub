@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -114,12 +115,6 @@ namespace Xylab.Management.Automation.WebServices
                 this._semaphoreSlim.Release();
             }
 
-            private void OnWriteMessage(string streamType, string message)
-            {
-                this._queue.Enqueue(KeyValuePair.Create(streamType, message));
-                this._semaphoreSlim.Release();
-            }
-
             private void OnWriteOutput(object sender, DataAddingEventArgs e)
             {
                 this._queue.Enqueue(KeyValuePair.Create("Output", PSSerializer.Serialize((PSObject)e.ItemAdded)));
@@ -133,12 +128,12 @@ namespace Xylab.Management.Automation.WebServices
 
             private void OnWriteDebug(object sender, DataAddingEventArgs e)
             {
-                this.OnWriteMessage("Debug", ((DebugRecord)e.ItemAdded).Message);
+                this.OnWriteRecord("Debug", (DebugRecord)e.ItemAdded);
             }
 
             private void OnWriteVerbose(object sender, DataAddingEventArgs e)
             {
-                this.OnWriteMessage("Verbose", ((VerboseRecord)e.ItemAdded).Message);
+                this.OnWriteRecord("Verbose", (VerboseRecord)e.ItemAdded);
             }
 
             private void OnWriteInformation(object sender, DataAddingEventArgs e)
@@ -153,7 +148,7 @@ namespace Xylab.Management.Automation.WebServices
 
             private void OnWriteWarning(object sender, DataAddingEventArgs e)
             {
-                this.OnWriteMessage("Warning", ((WarningRecord)e.ItemAdded).Message);
+                this.OnWriteRecord("Warning", (WarningRecord)e.ItemAdded);
             }
         }
     }
@@ -165,6 +160,24 @@ namespace Xylab.Management.Automation.WebServices
             using Runspace runspace = Bundle.CreateRunspace();
             using PowerShell pwsh = PowerShell.Create(runspace);
             pwsh.AddScript(scriptContent);
+
+            await foreach (var entry in new PowerShellInvoker(pwsh).WithCancellation(Context.ConnectionAborted))
+            {
+                yield return entry;
+            }
+        }
+
+        public async IAsyncEnumerable<KeyValuePair<string, string>> ExecuteCmdlet(string cmdletName, string serializedBoundParameters)
+        {
+            using Runspace runspace = Bundle.CreateRunspace();
+            using PowerShell pwsh = PowerShell.Create(runspace);
+            pwsh.AddCommand(cmdletName);
+
+            if (serializedBoundParameters != null)
+            {
+                PSObject inputObject = (PSObject)PSSerializer.Deserialize(serializedBoundParameters);
+                pwsh.AddParameters((Hashtable)inputObject.ImmediateBaseObject);
+            }
 
             await foreach (var entry in new PowerShellInvoker(pwsh).WithCancellation(Context.ConnectionAborted))
             {
