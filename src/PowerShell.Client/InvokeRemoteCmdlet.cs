@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.SignalR.Client;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Management.Automation;
 
@@ -8,15 +7,15 @@ namespace Xylab.Management.Automation
     [Cmdlet(VerbsLifecycle.Invoke, "RemoteCmdlet")]
     public class InvokeRemoteCmdlet : RemoteActionBase
     {
-        [Parameter(Mandatory = true, Position = 1)]
-        public string? CmdletName { get; set; } = string.Empty;
+        [Parameter(Mandatory = true, Position = 1, ValueFromPipeline = true)]
+        public string CmdletName { get; set; } = string.Empty;
 
         [Parameter(Position = 2)]
         public Hashtable? BoundParameters { get; set; }
 
-        protected override IAsyncEnumerable<KeyValuePair<string, string>> StartExecuteAsync(HubConnection connection)
+        protected override IAsyncEnumerable<KeyValuePair<string, string>> StartExecuteAsync(PowerShellRemoteClient client)
         {
-            return connection.StreamAsync<KeyValuePair<string, string>>(
+            return client.GetStream(
                 "ExecuteCmdlet",
                 this.CmdletName,
                 this.BoundParameters == null

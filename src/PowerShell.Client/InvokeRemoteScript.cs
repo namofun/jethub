@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.SignalR.Client;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Management.Automation;
 
 namespace Xylab.Management.Automation
@@ -7,12 +6,12 @@ namespace Xylab.Management.Automation
     [Cmdlet(VerbsLifecycle.Invoke, "RemoteScript")]
     public class InvokeRemoteScript : RemoteActionBase
     {
-        [Parameter(Mandatory = true, Position = 1)]
+        [Parameter(Mandatory = true, Position = 1, ValueFromPipeline = true)]
         public string ScriptContent { get; set; } = string.Empty;
 
-        protected override IAsyncEnumerable<KeyValuePair<string, string>> StartExecuteAsync(HubConnection connection)
+        protected override IAsyncEnumerable<KeyValuePair<string, string>> StartExecuteAsync(PowerShellRemoteClient client)
         {
-            return connection.StreamAsync<KeyValuePair<string, string>>("ExecuteScript", ScriptContent);
+            return client.GetStream("ExecuteScript", ScriptContent);
         }
     }
 }
