@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO.Abstractions;
+using System.Linq;
 using System.Reflection;
 using Xylab.Management.Services;
 using Xylab.Workflows.LogicApps.Engine;
@@ -20,9 +21,8 @@ namespace JetHub
             builder.Services.Configure<GlobalOptions>(options =>
             {
                 options.HostName = System.Net.Dns.GetHostName();
-                var info = typeof(Program).Assembly.GetCustomAttribute<GitVersionAttribute>();
-                options.Branch = info.Branch;
-                options.CommitId = info.Version;
+                options.Branch = typeof(Program).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>().FirstOrDefault(a => a.Key == "GitBranchName")?.Value ?? "unknown";
+                options.CommitId = typeof(Program).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>().FirstOrDefault(a => a.Key == "GitCommitId")?.Value ?? "unknown";
                 options.Version = typeof(Program).Assembly.GetName().Version?.ToString() ?? "0.0.0.0";
             });
 

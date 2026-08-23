@@ -1,0 +1,25 @@
+<Solution>
+  <Folder Name="/build/">
+    <File Path=".gitignore" />
+    <File Path="build/NugetPackage.Backend.props" />
+    <File Path="build/NugetPackage.Common.props" />
+    <File Path="build/NugetPackage.props" />
+    <File Path="build/xylab.snk" />
+    <File Path="Directory.Build.props" />
+    <File Path="NuGet.config" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/sample/">
+    <Project Path="src/Host/JetHub.Host.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Management.Interop/Management.Interop.csproj" />
+    <Project Path="src/Management.ProjectKudu/Management.Kudu.csproj" />
+    <Project Path="src/PowerShell.Client/PowerShell.Client.csproj" />
+    <Project Path="src/PowerShell.Cmdlets/Automation.Bundle.csproj" />
+    <Project Path="src/Workflows.LogicApps/Workflows.LogicApps.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Management.Interop/Management.Interop.UnitTests.csproj" />
+  </Folder>
+</Solution>

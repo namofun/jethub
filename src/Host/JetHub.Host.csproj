@@ -6,6 +6,13 @@
     <UserSecretsId>f9f8f9c1-7623-4a6b-9433-b7e2f0a09f2b</UserSecretsId>
   </PropertyGroup>
 
+  <Target Name="SetGitInformationalVersion" AfterTargets="InitializeSourceControlInformation" BeforeTargets="GetAssemblyAttributes">
+    <ItemGroup>
+      <AssemblyMetadata Include="GitCommitId" Value="$(SourceRevisionId)" Condition="'$(SourceRevisionId)' != ''" />
+      <AssemblyMetadata Include="GitBranchName" Value="$(SourceBranchName)" Condition="'$(SourceBranchName)' != ''" />
+    </ItemGroup>
+  </Target>
+
   <ItemGroup>
     <Compile Include="..\Workflows.LogicApps\WorkflowsController.cs" Link="Controllers\WorkflowsController.cs" />
     <Compile Include="..\PowerShell.Cmdlets\WebServices\PowerShellController.cs" Link="Controllers\PowerShellController.cs" />
@@ -13,7 +20,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="SatelliteSite.Abstraction" Version="$(SubstrateVersion)" />
     <PackageReference Include="Microsoft.PowerShell.SDK" Version="$(PowerShellVersion)" />
   </ItemGroup>
 
