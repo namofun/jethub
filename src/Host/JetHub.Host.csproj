@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>JetHub</RootNamespace>
     <UserSecretsId>f9f8f9c1-7623-4a6b-9433-b7e2f0a09f2b</UserSecretsId>
   </PropertyGroup>

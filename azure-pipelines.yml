@@ -34,6 +34,12 @@ jobs:
       script: 'echo "ref: $(Build.SourceBranch)" > $(Build.SourcesDirectory)/.git/ADO_OVERRIDE_HEAD'
     displayName: 'Set Source Branch'
 
+  - task: UseDotNet@2
+    inputs:
+      packageType: 'sdk'
+      version: '10.0.x'
+    displayName: 'Install .NET 10 SDK'
+
   - task: DotNetCoreCLI@2
     inputs:
       command: 'build'
