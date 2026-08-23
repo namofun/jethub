@@ -4,7 +4,6 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <AspNetCoreVersion>6.0.0</AspNetCoreVersion>
     <AzureLogicAppsVersion>1.0.0.6-preview</AzureLogicAppsVersion>
-    <SubstrateVersion>1.1.45</SubstrateVersion>
     <EFCoreBulkVersion>6.0.29</EFCoreBulkVersion>
     <PowerShellVersion>7.2.5</PowerShellVersion>
   </PropertyGroup>
@@ -22,12 +21,6 @@
     <PackageVersion Include="Microsoft.PowerShell.SDK" Version="$(PowerShellVersion)" />
     <PackageVersion Include="MSTest.TestAdapter" Version="2.2.7" />
     <PackageVersion Include="MSTest.TestFramework" Version="2.2.7" />
-    <PackageVersion Include="SatelliteSite.Abstraction" Version="$(SubstrateVersion)" />
-    <PackageVersion Include="SatelliteSite.HostBuilder" Version="$(SubstrateVersion)" />
-    <PackageVersion Include="SatelliteSite.IdentityCore" Version="$(SubstrateVersion)" />
-    <PackageVersion Include="SatelliteSite.IdentityModule" Version="$(SubstrateVersion)" />
-    <PackageVersion Include="SatelliteSite.StaticWebAssets.JsonViewer" Version="18.5.13" />
-    <PackageVersion Include="SatelliteSite.Substrate" Version="$(SubstrateVersion)" />
     <PackageVersion Include="System.IO.Abstractions" Version="13.2.28" />
     <PackageVersion Include="System.Management.Automation" Version="$(PowerShellVersion)" />
     <PackageVersion Include="Tmds.DBus" Version="0.10.1" />
