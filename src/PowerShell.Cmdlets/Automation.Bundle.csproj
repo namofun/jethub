@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Management.Automation" Version="$(PowerShellVersion)" />
+    <PackageReference Include="System.Management.Automation" />
   </ItemGroup>
 
 </Project>

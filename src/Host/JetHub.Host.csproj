@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.PowerShell.SDK" Version="$(PowerShellVersion)" />
+    <PackageReference Include="Microsoft.PowerShell.SDK" />
   </ItemGroup>
 
   <ItemGroup>

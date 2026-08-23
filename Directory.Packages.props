@@ -1,0 +1,37 @@
+<Project>
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <AspNetCoreVersion>6.0.0</AspNetCoreVersion>
+    <AzureLogicAppsVersion>1.0.0.6-preview</AzureLogicAppsVersion>
+    <SubstrateVersion>1.1.45</SubstrateVersion>
+    <EFCoreBulkVersion>6.0.29</EFCoreBulkVersion>
+    <PowerShellVersion>7.2.5</PowerShellVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageVersion Include="coverlet.collector" Version="3.1.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="$(AspNetCoreVersion)" />
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="$(AspNetCoreVersion)" />
+    <PackageVersion Include="Microsoft.Azure.Workflows.Client" Version="$(AzureLogicAppsVersion)" />
+    <PackageVersion Include="Microsoft.Azure.Workflows.Runtime" Version="$(AzureLogicAppsVersion)" />
+    <PackageVersion Include="Microsoft.Azure.Workflows.ServiceProviders.Common" Version="$(AzureLogicAppsVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="$(AspNetCoreVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(AspNetCoreVersion)" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
+    <PackageVersion Include="Microsoft.PowerShell.SDK" Version="$(PowerShellVersion)" />
+    <PackageVersion Include="MSTest.TestAdapter" Version="2.2.7" />
+    <PackageVersion Include="MSTest.TestFramework" Version="2.2.7" />
+    <PackageVersion Include="SatelliteSite.Abstraction" Version="$(SubstrateVersion)" />
+    <PackageVersion Include="SatelliteSite.HostBuilder" Version="$(SubstrateVersion)" />
+    <PackageVersion Include="SatelliteSite.IdentityCore" Version="$(SubstrateVersion)" />
+    <PackageVersion Include="SatelliteSite.IdentityModule" Version="$(SubstrateVersion)" />
+    <PackageVersion Include="SatelliteSite.StaticWebAssets.JsonViewer" Version="18.5.13" />
+    <PackageVersion Include="SatelliteSite.Substrate" Version="$(SubstrateVersion)" />
+    <PackageVersion Include="System.IO.Abstractions" Version="13.2.28" />
+    <PackageVersion Include="System.Management.Automation" Version="$(PowerShellVersion)" />
+    <PackageVersion Include="Tmds.DBus" Version="0.10.1" />
+    <PackageVersion Include="XiaoYang.EntityFrameworkCore.Bulk.SqlServer" Version="$(EFCoreBulkVersion)" />
+  </ItemGroup>
+
+</Project>

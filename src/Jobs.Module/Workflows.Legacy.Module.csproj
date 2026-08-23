@@ -11,9 +11,9 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="SatelliteSite.StaticWebAssets.JsonViewer" Version="18.5.13" />
-    <PackageReference Include="SatelliteSite.Substrate" Version="$(SubstrateVersion)" />
-    <PackageReference Include="SatelliteSite.IdentityCore" Version="$(SubstrateVersion)" />
+    <PackageReference Include="SatelliteSite.StaticWebAssets.JsonViewer" />
+    <PackageReference Include="SatelliteSite.Substrate" />
+    <PackageReference Include="SatelliteSite.IdentityCore" />
   </ItemGroup>
 
   <ItemGroup>

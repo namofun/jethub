@@ -7,12 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SatelliteSite.Substrate" Version="$(SubstrateVersion)" />
-    <PackageReference Include="SatelliteSite.HostBuilder" Version="$(SubstrateVersion)" />
-    <PackageReference Include="SatelliteSite.IdentityModule" Version="$(SubstrateVersion)" />
-    <PackageReference Include="XiaoYang.EntityFrameworkCore.Bulk.SqlServer" Version="$(EFCoreBulkVersion)" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="$(AspNetCoreVersion)" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="$(AspNetCoreVersion)">
+    <PackageReference Include="SatelliteSite.Substrate" />
+    <PackageReference Include="SatelliteSite.HostBuilder" />
+    <PackageReference Include="SatelliteSite.IdentityModule" />
+    <PackageReference Include="XiaoYang.EntityFrameworkCore.Bulk.SqlServer" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

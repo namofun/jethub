@@ -11,8 +11,8 @@
   <Import Project="..\..\build\NugetPackage.Backend.props" />
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="$(AspNetCoreVersion)" />
-    <PackageReference Include="System.Management.Automation" Version="$(PowerShellVersion)" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+    <PackageReference Include="System.Management.Automation" />
   </ItemGroup>
 
 </Project>
