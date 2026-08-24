@@ -11,6 +11,7 @@
   "Microsoft.Azure.Workflows.EdgeEnvironment.ScaleMonitor.MaxPollingLatency": "00:00:30",
   "Microsoft.Azure.Workflows.EdgeApiRuntimeUrl.FileSystem": "http://filesystemconnector:80",
   "Microsoft.Azure.Workflows.EdgeApiRuntimeUrl.Sql": "http://sqlconnector:80",
+  "Microsoft.Azure.Workflows.Classic.DirectEndpointScaleUnitPrefix": "CU",
   "Microsoft.Azure.Workflows.CanUseLocalNotificationForResponseReady": "true",
   "Microsoft.Azure.Workflows.JobCallback.Assemblies": "Microsoft.Azure.Workflows.Worker.Common;Microsoft.Azure.Workflows.Worker.Edge;",
   "Microsoft.WindowsAzure.ResourceStack.JobResourceGovernance.WorkerPulsationsThrottling.EnabledForPulseRequests": "false",

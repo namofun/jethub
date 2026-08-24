@@ -1,32 +1,22 @@
-﻿using Microsoft.Azure.Workflows.Data.Configuration;
+﻿namespace Xylab.Workflows.LogicApps.Engine;
+
+using System.Web.Http;
+using Microsoft.Azure.Workflows.Data.Configuration;
+using Microsoft.Azure.Workflows.Data.Engines;
 using Microsoft.Azure.Workflows.Web.Engines;
 using Microsoft.Azure.Workflows.Worker;
-using System.Web.Http;
 
-namespace Xylab.Workflows.LogicApps.Engine
+public sealed class WorkflowEngine : IFlowConfigurationHolder
 {
-    public sealed class WorkflowEngine : IFlowConfigurationHolder
-    {
-        public EdgeFlowConfiguration Configuration { get; }
+    required public EdgeFlowConfiguration Configuration { get; init; }
 
-        public EdgeFlowWebManagementEngine Management { get; }
+    required public EdgeFlowWebManagementEngine Management { get; init; }
 
-        public EdgeFlowJobsDispatcher JobsDispatcher { get; }
+    required public EdgeFlowJobsDispatcher JobsDispatcher { get; init; }
 
-        public HttpConfiguration HttpConfiguration { get; }
+    required public HttpConfiguration HttpConfiguration { get; init; }
 
-        FlowConfiguration IFlowConfigurationHolder.FlowConfiguration => Configuration;
+    required public FlowUriTemplateEngine UriTemplate { get; init; }
 
-        public WorkflowEngine(
-            EdgeFlowConfiguration configuration,
-            EdgeFlowWebManagementEngine engine,
-            EdgeFlowJobsDispatcher jobsDispatcher,
-            HttpConfiguration httpConfiguration)
-        {
-            Configuration = configuration;
-            Management = engine;
-            JobsDispatcher = jobsDispatcher;
-            HttpConfiguration = httpConfiguration;
-        }
-    }
+    FlowConfiguration IFlowConfigurationHolder.FlowConfiguration => Configuration;
 }

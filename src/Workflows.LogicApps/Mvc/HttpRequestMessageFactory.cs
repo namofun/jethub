@@ -1,45 +1,44 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿namespace Xylab.Workflows.LogicApps.Mvc;
+
 using System;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
-namespace Xylab.Workflows.LogicApps.Mvc
+public class HttpRequestMessageFactory
 {
-    public class HttpRequestMessageFactory
+    public static async Task<HttpRequestMessage> FromHttpContext(HttpRequest request)
     {
-        public static async Task<HttpRequestMessage> FromHttpContext(HttpRequest request)
+        HttpRequestMessage req = new();
+        req.RequestUri = new Uri($"http://localhost{request.Path}{request.QueryString}");
+        req.Method = new HttpMethod(request.Method);
+
+        if (request.ContentLength.HasValue)
         {
-            HttpRequestMessage req = new();
-            req.RequestUri = new Uri($"http://localhost{request.Path}{request.QueryString}");
-            req.Method = new HttpMethod(request.Method);
-
-            if (request.ContentLength.HasValue)
-            {
-                MemoryStream stream = new();
-                await request.Body.CopyToAsync(stream);
-                stream.Position = 0;
-                req.Content = new StreamContent(stream);
-            }
-
-            foreach (var header in request.Headers)
-            {
-                if (header.Key.Contains(':'))
-                {
-                    // Some HTTP/2 requests are setting up header like ":method". Ignore here.
-                    continue;
-                }
-                else if (header.Key.StartsWith("content-", StringComparison.OrdinalIgnoreCase))
-                {
-                    req.Content?.Headers.Add(header.Key, header.Value.ToArray());
-                }
-                else
-                {
-                    req.Headers.Add(header.Key, header.Value.ToArray());
-                }
-            }
-
-            return req;
+            MemoryStream stream = new();
+            await request.Body.CopyToAsync(stream);
+            stream.Position = 0;
+            req.Content = new StreamContent(stream);
         }
+
+        foreach (var header in request.Headers)
+        {
+            if (header.Key.Contains(':'))
+            {
+                // Some HTTP/2 requests are setting up header like ":method". Ignore here.
+                continue;
+            }
+            else if (header.Key.StartsWith("content-", StringComparison.OrdinalIgnoreCase))
+            {
+                req.Content?.Headers.Add(header.Key, header.Value.ToArray());
+            }
+            else
+            {
+                req.Headers.Add(header.Key, header.Value.ToArray());
+            }
+        }
+
+        return req;
     }
 }

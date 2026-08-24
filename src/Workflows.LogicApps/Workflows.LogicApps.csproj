@@ -19,9 +19,14 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Microsoft.Azure.Workflows.Client" />
-    <PackageReference Include="Microsoft.Azure.Workflows.Runtime" />
-    <PackageReference Include="Microsoft.Azure.Workflows.ServiceProviders.Common" />
+    <PackageReference Include="AngleSharp" />
+    <PackageReference Include="Google.Protobuf" />
+    <PackageReference Include="ICU4N" />
+    <PackageReference Include="MessagePack" />
+    <PackageReference Include="Microsoft.Azure.Workflows.WebJobs.Extension" />
+    <PackageReference Include="Microsoft.SemanticKernel.Core" />
+    <PackageReference Include="MimeKit" />
+    <PackageReference Include="SSH.NET" />
   </ItemGroup>
 
 </Project>

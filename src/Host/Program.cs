@@ -41,11 +41,6 @@ namespace JetHub
             builder.Services.AddWorkflowEngine(options =>
             {
                 options.AzureStorageAccountConnectionString = "UseDevelopmentStorage=true";
-                options.InitializeConnectionsFromJson(
-                    System.IO.File.ReadAllText(
-                        System.IO.Path.Combine(
-                            builder.Environment.ContentRootPath,
-                            "connections.json")));
             });
 
             var app = builder.Build();
