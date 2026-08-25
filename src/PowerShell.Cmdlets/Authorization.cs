@@ -1,43 +1,42 @@
-﻿using System;
+﻿namespace Xylab.Management.Automation;
+
+using System;
 using System.Management.Automation;
 using System.Management.Automation.Host;
 
-namespace Xylab.Management.Automation
+[Flags]
+public enum Role
 {
-    [Flags]
-    public enum Role
+    ViewOnly = 0,
+}
+
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+public sealed class AuthorizationAttribute : Attribute
+{
+    public Role Roles { get; }
+
+    public AuthorizationAttribute(Role roles)
     {
-        ViewOnly = 0,
+        this.Roles = roles;
+    }
+}
+
+public class RoleBasedAuthroizationManager : AuthorizationManager
+{
+    public RoleBasedAuthroizationManager(string shellId) : base(shellId)
+    {
     }
 
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    public sealed class AuthorizationAttribute : Attribute
+    protected override bool ShouldRun(CommandInfo commandInfo, CommandOrigin origin, PSHost host, out Exception? reason)
     {
-        public Role Roles { get; }
-
-        public AuthorizationAttribute(Role roles)
+        if (origin == CommandOrigin.Internal)
         {
-            this.Roles = roles;
+            reason = null;
+            return true;
         }
-    }
-
-    public class RoleBasedAuthroizationManager : AuthorizationManager
-    {
-        public RoleBasedAuthroizationManager(string shellId) : base(shellId)
+        else
         {
-        }
-
-        protected override bool ShouldRun(CommandInfo commandInfo, CommandOrigin origin, PSHost host, out Exception? reason)
-        {
-            if (origin == CommandOrigin.Internal)
-            {
-                reason = null;
-                return true;
-            }
-            else
-            {
-                return base.ShouldRun(commandInfo, origin, host, out reason);
-            }
+            return base.ShouldRun(commandInfo, origin, host, out reason);
         }
     }
 }
