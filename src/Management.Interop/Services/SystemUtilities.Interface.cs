@@ -1,26 +1,25 @@
 ﻿#nullable enable
+namespace Xylab.Management.Services;
+
 using Xylab.Management.Models;
 
-namespace Xylab.Management.Services
+public interface ISystemUtilities
 {
-    public interface ISystemUtilities
-    {
-        UserInformation? FindUser(uint uid);
+    UserInformation? FindUser(uint uid);
 
-        UserInformation? FindUser(string name);
+    UserInformation? FindUser(string name);
 
-        uint GetUserId();
+    uint GetUserId();
 
-        uint GetEffectiveUserId();
+    uint GetEffectiveUserId();
 
-        uint GetGroupId();
+    uint GetGroupId();
 
-        uint GetEffectiveGroupId();
+    uint GetEffectiveGroupId();
 
-        void ChangeMode(string filePath, uint mode);
+    void ChangeMode(string filePath, uint mode);
 
-        bool TryChangeMode(string filePath, uint mode);
+    bool TryChangeMode(string filePath, uint mode);
 
-        void SetUmask(uint cmask, out uint originalCmask);
-    }
+    void SetUmask(uint cmask, out uint originalCmask);
 }

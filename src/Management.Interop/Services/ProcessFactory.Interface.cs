@@ -1,11 +1,10 @@
 ﻿#nullable enable
+namespace Xylab.Management.Services;
+
 using System.Threading.Tasks;
 using Xylab.Management.Models;
 
-namespace Xylab.Management.Services
+public interface IProcessFactory
 {
-    public interface IProcessFactory
-    {
-        public Task<ProcessResult> StartAsync(string fileName, string? cmdline = null, ProcessStartupOptions? options = null);
-    }
+    public Task<ProcessResult> StartAsync(string fileName, string? cmdline = null, ProcessStartupOptions? options = null);
 }

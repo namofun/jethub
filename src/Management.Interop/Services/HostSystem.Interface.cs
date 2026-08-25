@@ -1,23 +1,21 @@
-﻿using System.Collections.Generic;
+﻿namespace Xylab.Management.Services;
+
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xylab.Management.Models;
-
-namespace Xylab.Management.Services
+public interface IHostSystem
 {
-    public interface IHostSystem
-    {
-        Task<SystemInformation> GetSystemStatusAsync();
+    Task<SystemInformation> GetSystemStatusAsync();
 
-        Task<List<InstalledPackage>> GetPackagesAsync(string root = "/");
+    Task<List<InstalledPackage>> GetPackagesAsync(string root = "/");
 
-        Task<List<CpuInformation>> GetCpusAsync();
+    Task<List<CpuInformation>> GetCpusAsync();
 
-        Task<KernelInformation> GetKernelAsync();
+    Task<KernelInformation> GetKernelAsync();
 
-        Task<List<DriveInformation>> GetDrivesAsync(bool fixedOnly = true);
+    Task<List<DriveInformation>> GetDrivesAsync(bool fixedOnly = true);
 
-        Task<List<ProcessInformation>> GetProcessesAsync();
+    Task<List<ProcessInformation>> GetProcessesAsync();
 
-        Task<List<ServiceInformation>> GetServicesAsync();
-    }
+    Task<List<ServiceInformation>> GetServicesAsync();
 }

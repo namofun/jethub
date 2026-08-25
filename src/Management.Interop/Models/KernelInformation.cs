@@ -1,13 +1,12 @@
-﻿using System.Text.Json.Serialization;
+﻿namespace Xylab.Management.Models;
 
-namespace Xylab.Management.Models
+using System.Text.Json.Serialization;
+
+public class KernelInformation
 {
-    public class KernelInformation
-    {
-        [JsonPropertyName("version")]
-        public string Version { get; set; }
+    [JsonPropertyName("version")]
+    public string Version { get; set; }
 
-        [JsonPropertyName("cmdline")]
-        public string Cmdline { get; set; }
-    }
+    [JsonPropertyName("cmdline")]
+    public string Cmdline { get; set; }
 }
