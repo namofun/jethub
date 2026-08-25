@@ -1,58 +1,48 @@
-using JetHub.Services;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 using Xylab.Management.Services;
 using Xylab.Workflows.LogicApps.Engine;
 
-namespace JetHub
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+
+builder.Services.Configure<GlobalOptions>(options =>
 {
-    public sealed class Program
-    {
-        public static void Main(string[] args)
-        {
-            var builder = WebApplication.CreateBuilder(args);
+    options.HostName = System.Net.Dns.GetHostName();
+    options.Branch = typeof(Program).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>().FirstOrDefault(a => a.Key == "GitBranchName")?.Value ?? "unknown";
+    options.CommitId = typeof(Program).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>().FirstOrDefault(a => a.Key == "GitCommitId")?.Value ?? "unknown";
+    options.Version = typeof(Program).Assembly.GetName().Version?.ToString() ?? "0.0.0.0";
+});
 
-            builder.Services.AddControllers();
+builder.Services.AddSignalR(o => o.EnableDetailedErrors = true);
 
-            builder.Services.Configure<GlobalOptions>(options =>
-            {
-                options.HostName = System.Net.Dns.GetHostName();
-                options.Branch = typeof(Program).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>().FirstOrDefault(a => a.Key == "GitBranchName")?.Value ?? "unknown";
-                options.CommitId = typeof(Program).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>().FirstOrDefault(a => a.Key == "GitCommitId")?.Value ?? "unknown";
-                options.Version = typeof(Program).Assembly.GetName().Version?.ToString() ?? "0.0.0.0";
-            });
-
-            builder.Services.AddSignalR(o => o.EnableDetailedErrors = true);
-
-            builder.Services.AddSingleton<IFileSystemV2, FileSystemV2>();
-            if (Environment.OSVersion.Platform == PlatformID.Unix)
-            {
-                builder.Services.AddSingleton<IHostSystem, LinuxSystem>();
-            }
-            else
-            {
-                builder.Services.AddSingleton<IHostSystem, FakeSystem>();
-            }
-
-            builder.Services.AddWorkflowEngine(options =>
-            {
-                options.AzureStorageAccountConnectionString = "UseDevelopmentStorage=true";
-            });
-
-            var app = builder.Build();
-
-            app.UseRouting();
-            app.UseAuthorization();
-
-            app.MapControllers();
-            app.MapHub<LogHub>("/api/log-stream");
-            app.MapHub<Xylab.Management.Automation.WebServices.PowerShellHub>("/api/psws");
-
-            app.Run();
-        }
-    }
+builder.Services.AddSingleton<IFileSystemV2, FileSystemV2>();
+if (Environment.OSVersion.Platform == PlatformID.Unix)
+{
+    builder.Services.AddSingleton<IHostSystem, LinuxSystem>();
 }
+else
+{
+    builder.Services.AddSingleton<IHostSystem, FakeSystem>();
+}
+
+builder.Services.AddWorkflowEngine(options =>
+{
+    options.AzureStorageAccountConnectionString = "UseDevelopmentStorage=true";
+});
+
+var app = builder.Build();
+
+app.UseRouting();
+app.UseAuthorization();
+
+app.MapControllers();
+app.MapHub<LogHub>("/api/log-stream");
+app.MapHub<Xylab.Management.Automation.WebServices.PowerShellHub>("/api/psws");
+
+app.Run();

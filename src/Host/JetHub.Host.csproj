@@ -2,8 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <RootNamespace>JetHub</RootNamespace>
+    <RootNamespace>Xylab.Management</RootNamespace>
     <UserSecretsId>f9f8f9c1-7623-4a6b-9433-b7e2f0a09f2b</UserSecretsId>
+    <NoWarn>$(NoWarn);MSB3246</NoWarn>
   </PropertyGroup>
 
   <Target Name="SetGitInformationalVersion" AfterTargets="InitializeSourceControlInformation" BeforeTargets="GetAssemblyAttributes">

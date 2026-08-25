@@ -1,13 +1,12 @@
-﻿namespace JetHub.Services
+﻿namespace Xylab.Management.Services;
+
+public class GlobalOptions
 {
-    public class GlobalOptions
-    {
-        public string HostName { get; set; }
+    public string HostName { get; set; }
 
-        public string CommitId { get; set; }
+    public string CommitId { get; set; }
 
-        public string Branch { get; set; }
+    public string Branch { get; set; }
 
-        public string Version { get; set; }
-    }
+    public string Version { get; set; }
 }
