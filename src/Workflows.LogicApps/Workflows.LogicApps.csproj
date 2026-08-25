@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <AssemblyName>Xylab.Workflows.LogicApps</AssemblyName>
     <RootNamespace>Xylab.Workflows.LogicApps</RootNamespace>
-    <NoWarn>$(NoWarn);MSB3270;NU5104</NoWarn>
+    <NoWarn>$(NoWarn);MSB3270;NU5104;MSB3246</NoWarn>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
@@ -24,6 +24,8 @@
     <PackageReference Include="ICU4N" />
     <PackageReference Include="MessagePack" />
     <PackageReference Include="Microsoft.Azure.Workflows.WebJobs.Extension" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Scripting.Common" />
     <PackageReference Include="Microsoft.SemanticKernel.Core" />
     <PackageReference Include="MimeKit" />
     <PackageReference Include="SSH.NET" />

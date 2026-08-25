@@ -33,7 +33,7 @@ public class EdgeFlowConfigurationSource : AzureConfigurationManager
         using StreamReader reader = new(stream);
         string json = reader.ReadToEnd();
         return new EdgeFlowConfigurationSource(
-            JsonConvert.DeserializeObject<Dictionary<string, string>>(json),
+            JsonConvert.DeserializeObject<Dictionary<string, string>>(json)!,
             endpointUri,
             appDirectoryPath);
     }

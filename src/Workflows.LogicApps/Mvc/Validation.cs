@@ -66,7 +66,7 @@ public static class Validation
         return action;
     }
 
-    public static async Task<TValue> GetContentJson<TValue>(HttpRequest request)
+    public static async Task<TValue> GetContentJson<TValue>(HttpRequest request) where TValue : notnull
     {
         if (!request.Headers.ContentLength.HasValue)
         {
@@ -85,7 +85,7 @@ public static class Validation
         }
 
         string contentJsonRaw;
-        TValue contentObject;
+        TValue? contentObject;
         using (StreamReader sr = new(request.Body))
         {
             contentJsonRaw = await sr.ReadToEndAsync();
@@ -100,6 +100,14 @@ public static class Validation
                 HttpStatusCode.BadRequest,
                 ErrorResponseCode.BadRequest,
                 "Cannot decode request body. Exception: " + ex.Message);
+        }
+
+        if (contentObject == null)
+        {
+            throw new ErrorResponseMessageException(
+                HttpStatusCode.BadRequest,
+                ErrorResponseCode.BadRequest,
+                "Request body cannot be null.");
         }
 
         return contentObject;
