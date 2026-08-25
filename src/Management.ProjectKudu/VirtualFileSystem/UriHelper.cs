@@ -1,66 +1,69 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Extensions;
+﻿/// <summary>
+///   Copied from https://github.com/Azure-App-Service/KuduLite/blob/dev/Kudu.Services/Infrastructure/UriHelper.cs
+/// </summary>
+
+namespace Xylab.Management.VirtualFileSystem;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
 
-namespace Xylab.Management.VirtualFileSystem
+internal static class UriHelper
 {
-    internal static class UriHelper
+    private const string DisguisedHostHeaderName = "DISGUISED-HOST";
+
+    public static bool UseDisguisedHost { get; set; }
+
+    public static Uri GetBaseUri(HttpRequest request)
     {
-        private const string DisguisedHostHeaderName = "DISGUISED-HOST";
+        return new Uri(GetRequestUri(request).GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped));
+    }
 
-        public static bool UseDisguisedHost { get; set; }
+    public static Uri GetRequestUri(HttpRequestMessage request)
+    {
+        string disguisedHost = null;
 
-        public static Uri GetBaseUri(HttpRequest request)
+        if (request.Headers.TryGetValues(DisguisedHostHeaderName, out IEnumerable<string> disguisedHostValues))
         {
-            return new Uri(GetRequestUri(request).GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped));
+            disguisedHost = disguisedHostValues.FirstOrDefault();
         }
 
-        public static Uri GetRequestUri(HttpRequestMessage request)
+        return GetRequestUriInternal(request.RequestUri, disguisedHost);
+    }
+
+    public static Uri GetRequestUri(HttpRequest request)
+    {
+        return GetRequestUriInternal(new Uri(request.GetDisplayUrl()), request.Headers[DisguisedHostHeaderName]);
+    }
+
+    private static Uri GetRequestUriInternal(Uri uri, string disguisedHostValue)
+    {
+        // On Linux, corrections to the request URI are needed due to the way the request is handled on the worker:
+        // - Set scheme to https
+        // - Set host to the value of DISGUISED-HOST
+        // - Remove port value
+        if (UseDisguisedHost && disguisedHostValue != null)
         {
-            string disguisedHost = null;
-
-            if (request.Headers.TryGetValues(DisguisedHostHeaderName, out IEnumerable<string> disguisedHostValues))
-            {
-                disguisedHost = disguisedHostValues.FirstOrDefault();
-            }
-
-            return GetRequestUriInternal(request.RequestUri, disguisedHost);
+            uri = new UriBuilder(uri) { Scheme = "https", Host = disguisedHostValue, Port = -1 }.Uri;
         }
 
-        public static Uri GetRequestUri(HttpRequest request)
-        {
-            return GetRequestUriInternal(new Uri(request.GetDisplayUrl()), request.Headers[DisguisedHostHeaderName]);
-        }
+        return uri;
+    }
 
-        private static Uri GetRequestUriInternal(Uri uri, string disguisedHostValue)
-        {
-            // On Linux, corrections to the request URI are needed due to the way the request is handled on the worker:
-            // - Set scheme to https
-            // - Set host to the value of DISGUISED-HOST
-            // - Remove port value
-            if (UseDisguisedHost && disguisedHostValue != null)
-            {
-                uri = new UriBuilder(uri) { Scheme = "https", Host = disguisedHostValue, Port = -1 }.Uri;
-            }
+    public static Uri MakeRelative(Uri baseUri, string relativeUri)
+    {
+        // We don't care about the query string
+        UriBuilder builder = new(baseUri) { Query = null };
+        if (builder.Port == 80) builder.Port = -1;
+        baseUri = new Uri(EnsureTrailingSlash(builder.ToString()));
+        return new Uri(baseUri, relativeUri);
+    }
 
-            return uri;
-        }
-
-        public static Uri MakeRelative(Uri baseUri, string relativeUri)
-        {
-            // We don't care about the query string
-            UriBuilder builder = new(baseUri) { Query = null };
-            if (builder.Port == 80) builder.Port = -1;
-            baseUri = new Uri(EnsureTrailingSlash(builder.ToString()));
-            return new Uri(baseUri, relativeUri);
-        }
-
-        internal static string EnsureTrailingSlash(string url)
-        {
-            return url.EndsWith("/", StringComparison.Ordinal) ? url : url + "/";
-        }
+    internal static string EnsureTrailingSlash(string url)
+    {
+        return url.EndsWith("/", StringComparison.Ordinal) ? url : url + "/";
     }
 }
