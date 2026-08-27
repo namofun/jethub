@@ -9,6 +9,7 @@ public class SystemInformation
     public TimeSpan Uptime { get; set; }
 
     [JsonPropertyName("loadavg")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public double[] LoadAverages { get; set; }
 
     [JsonPropertyName("totalMemory")]

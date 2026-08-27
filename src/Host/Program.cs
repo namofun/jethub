@@ -22,9 +22,13 @@ builder.Services.Configure<GlobalOptions>(options =>
 builder.Services.AddSignalR(o => o.EnableDetailedErrors = true);
 
 builder.Services.AddSingleton<IFileSystemV2, FileSystemV2>();
-if (Environment.OSVersion.Platform == PlatformID.Unix)
+if (OperatingSystem.IsLinux())
 {
     builder.Services.AddSingleton<IHostSystem, LinuxSystem>();
+}
+else if (OperatingSystem.IsWindows())
+{
+    builder.Services.AddSingleton<IHostSystem, WindowsSystem>();
 }
 else
 {

@@ -1,6 +1,7 @@
 ﻿namespace Xylab.Management.Interop;
 
 using System.Collections.Generic;
+using System.Runtime.Versioning;
 using Xylab.Management.Models;
 
 internal partial class Parser

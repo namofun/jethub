@@ -8,5 +8,6 @@ public class KernelInformation
     public string Version { get; set; }
 
     [JsonPropertyName("cmdline")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string Cmdline { get; set; }
 }

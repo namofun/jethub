@@ -4,11 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Tmds.DBus;
-using Xylab.Management.Interop.DBus;
 using Xylab.Management.Models;
+using static Xylab.Management.Interop.DBus;
 
+[SupportedOSPlatform("linux")]
 public class LinuxSystem : IHostSystem
 {
     public async Task<List<CpuInformation>> GetCpusAsync()

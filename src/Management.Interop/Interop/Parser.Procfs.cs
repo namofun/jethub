@@ -2,10 +2,12 @@
 
 using System;
 using System.Linq;
+using System.Runtime.Versioning;
 using Xylab.Management.Models;
 
 internal partial class Parser
 {
+    [SupportedOSPlatform("linux")]
     public static ProcessInformation ProcfsPsinfo(
         (int pid, string stat, string status, string cmdline) proc,
         Func<uint, string> userNameResolver)

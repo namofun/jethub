@@ -5,7 +5,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>Xylab.Management.Interop</AssemblyName>
     <RootNamespace>Xylab.Management</RootNamespace>
-    <DescriptionAttach>Linux system interop library</DescriptionAttach>
+    <DescriptionAttach>System management interop library</DescriptionAttach>
   </PropertyGroup>
 
   <Import Project="..\..\build\NugetPackage.Backend.props" />
@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Management.Infrastructure" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Tmds.DBus" />
   </ItemGroup>

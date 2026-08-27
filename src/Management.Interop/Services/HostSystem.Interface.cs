@@ -1,12 +1,14 @@
 ﻿namespace Xylab.Management.Services;
 
 using System.Collections.Generic;
+using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Xylab.Management.Models;
 public interface IHostSystem
 {
     Task<SystemInformation> GetSystemStatusAsync();
 
+    [SupportedOSPlatform("linux")]
     Task<List<InstalledPackage>> GetPackagesAsync(string root = "/");
 
     Task<List<CpuInformation>> GetCpusAsync();

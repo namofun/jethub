@@ -3,7 +3,9 @@
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
+[SupportedOSPlatform("linux")]
 internal partial class Libc
 {
     private const string libc_so_6 = @"/lib/x86_64-linux-gnu/libc.so.6";

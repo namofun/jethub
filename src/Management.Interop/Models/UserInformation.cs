@@ -21,17 +21,4 @@ public class UserInformation
 
     [JsonPropertyName("shell")]
     public string Shell { get; set; }
-
-    internal static UserInformation From(in Interop.Libc.passwd_t passwd)
-    {
-        return new UserInformation
-        {
-            Shell = passwd.pw_shell,
-            Comment = passwd.pw_gecos,
-            HomeDirectory = passwd.pw_dir,
-            GroupId = passwd.pw_gid,
-            UserId = passwd.pw_uid,
-            UserName = passwd.pw_name,
-        };
-    }
 }
