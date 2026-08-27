@@ -15,7 +15,6 @@
   </Target>
 
   <ItemGroup>
-    <Compile Include="..\Workflows.LogicApps\WorkflowsController.cs" Link="Controllers\WorkflowsController.cs" />
     <Compile Include="..\PowerShell.Cmdlets\WebServices\PowerShellController.cs" Link="Controllers\PowerShellController.cs" />
     <Compile Include="..\PowerShell.Cmdlets\WebServices\PowerShellHub.cs" Link="Controllers\PowerShellHub.cs" />
   </ItemGroup>

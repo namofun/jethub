@@ -110,8 +110,13 @@ public static class WorkflowEngineExtensions
                 actionName: actionName);
     }
 
-    public static Task<JToken> GetContentLink(this WorkflowEngine engine, Flow flow, string flowContentSequenceId, ContentLink contentLink)
+    public static Task<JToken> GetContentLink(this WorkflowEngine engine, Flow flow, string flowContentSequenceId, ContentLink? contentLink)
     {
+        if (contentLink == null)
+        {
+            return Task.FromResult<JToken>(JRaw.CreateNull());
+        }
+
         return engine.GetScaleUnitDataProvider(flow.ScaleUnit)
             .DownloadFlowOperationContent(
                 flowId: flow.FlowId,

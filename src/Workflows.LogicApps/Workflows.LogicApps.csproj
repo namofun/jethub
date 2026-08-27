@@ -13,8 +13,6 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Engine\AzureConfig.json" />
-    <Compile Remove="WorkflowsController.cs" />
-    <Content Include="WorkflowsController.cs" />
   </ItemGroup>
 
   <ItemGroup>

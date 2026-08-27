@@ -1,9 +1,11 @@
 ﻿namespace Xylab.Workflows.LogicApps.Mvc;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Azure.Workflows.Common.ErrorResponses;
 using Microsoft.Azure.Workflows.Data.Definitions;
 using Microsoft.Azure.Workflows.Data.Entities;
@@ -14,47 +16,47 @@ using Xylab.Workflows.LogicApps.Engine;
 
 [RequestCorrelationFilter]
 [ErrorResponseMessageExceptionFilter]
-public partial class WorkflowsController : ControllerBase
+public abstract class WorkflowsControllerBase(WorkflowEngineProvider workflowEngineProvider) : ControllerBase, IAsyncActionFilter
 {
-    protected readonly WorkflowEngine Engine;
+    private WorkflowEngine? engine;
 
-    public WorkflowsController(WorkflowEngineProvider workflowEngineProvider)
+    protected WorkflowEngine Engine
     {
-        Engine = workflowEngineProvider.GetEngineAsync().Result;
+        get => engine ?? throw new InvalidOperationException("Engine is used before initialized.");
     }
 
-    [HttpGet("workflows")]
-    public async Task<IActionResult> GetFlows()
+    [HttpGet]
+    public virtual async Task<IActionResult> GetFlows()
     {
         SegmentedList<Flow> flows = await Engine.FindFlowsSegmented();
         return Json(flows.Select(Engine.GetFlowDefinition));
     }
 
-    [HttpGet("workflows/{workflowId}")]
-    public async Task<IActionResult> GetFlow([FromRoute] string workflowId)
+    [HttpGet("{workflowId}")]
+    public virtual async Task<IActionResult> GetFlow([FromRoute] string workflowId)
     {
         Flow flow = await Engine.FindFlowByIdOrName(workflowId).NotNull();
         return Json(Engine.GetFlowDefinition(flow), flow.EntityTag);
     }
 
-    [HttpGet("workflows/{workflowId}/versions")]
-    public async Task<IActionResult> GetVersions([FromRoute] string workflowId)
+    [HttpGet("{workflowId}/versions")]
+    public virtual async Task<IActionResult> GetVersions([FromRoute] string workflowId)
     {
         Flow flow = await Engine.FindFlowByIdOrName(workflowId).NotNull();
         SegmentedList<Flow> ver = await Engine.FindFlowVersionsSegmented(flow);
         return Json(ver.Select(Engine.GetFlowVersionDefinition));
     }
 
-    [HttpGet("workflows/{workflowId}/versions/{version}")]
-    public async Task<IActionResult> GetVersion([FromRoute] string workflowId, [FromRoute] string version)
+    [HttpGet("{workflowId}/versions/{version}")]
+    public virtual async Task<IActionResult> GetVersion([FromRoute] string workflowId, [FromRoute] string version)
     {
         Flow flow = await Engine.FindFlowByIdOrName(workflowId).NotNull();
         Flow ver = await Engine.FindFlowVersion(flow, version).NotNull(ErrorResponseCode.WorkflowVersionNotFound);
         return Json(Engine.GetFlowVersionDefinition(ver), ver.EntityTag);
     }
 
-    [HttpGet("workflows/{workflowId}/triggers")]
-    public async Task<IActionResult> GetTriggers([FromRoute] string workflowId)
+    [HttpGet("{workflowId}/triggers")]
+    public virtual async Task<IActionResult> GetTriggers([FromRoute] string workflowId)
     {
         Flow flow = await Engine.FindFlowByIdOrName(workflowId).NotNull();
         return Json(
@@ -63,16 +65,16 @@ public partial class WorkflowsController : ControllerBase
             flow.EntityTag);
     }
 
-    [HttpGet("workflows/{workflowId}/triggers/{triggerName}")]
-    public async Task<IActionResult> GetTrigger([FromRoute] string workflowId, [FromRoute] string triggerName)
+    [HttpGet("{workflowId}/triggers/{triggerName}")]
+    public virtual async Task<IActionResult> GetTrigger([FromRoute] string workflowId, [FromRoute] string triggerName)
     {
         Flow flow = await Engine.FindFlowByIdOrName(workflowId).NotNull();
         Validation.Trigger(flow, triggerName);
         return Json(Engine.GetFlowTriggerDefinition(flow, triggerName), flow.EntityTag);
     }
 
-    [Route("workflows/{workflowId}/triggers/{triggerName}/paths/invoke")]
-    public async Task<IActionResult> InvokeTrigger([FromRoute] string workflowId, [FromRoute] string triggerName)
+    [Route("{workflowId}/triggers/{triggerName}/paths/invoke")]
+    public virtual async Task<IActionResult> InvokeTrigger([FromRoute] string workflowId, [FromRoute] string triggerName)
     {
         RequestCorrelationContext.Current.AuthenticationIdentity.AuthorizedBy = RequestAuthorizationSource.Direct;
         Flow flow = await Engine.FindFlowByIdOrName(workflowId).NotNull();
@@ -86,16 +88,16 @@ public partial class WorkflowsController : ControllerBase
             cancellationToken: HttpContext.RequestAborted);
     }
 
-    [HttpGet("workflows/{workflowId}/runs")]
-    public async Task<IActionResult> GetRuns([FromRoute] string workflowId)
+    [HttpGet("{workflowId}/runs")]
+    public virtual async Task<IActionResult> GetRuns([FromRoute] string workflowId)
     {
         Flow flow = await Engine.FindFlowByIdOrName(workflowId).NotNull();
         SegmentedList<FlowRun> runs = await Engine.FindFlowRunsSegmented(flow);
         return Json(runs.Select(run => Engine.GetFlowRunDefinition(flow, run)));
     }
 
-    [HttpGet("workflows/{workflowId}/runs/{sequenceId}")]
-    public async Task<IActionResult> GetRun([FromRoute] string workflowId, [FromRoute] string sequenceId)
+    [HttpGet("{workflowId}/runs/{sequenceId}")]
+    public virtual async Task<IActionResult> GetRun([FromRoute] string workflowId, [FromRoute] string sequenceId)
     {
         Flow flow = await Engine.FindFlowByIdOrName(workflowId).NotNull();
         FlowRun run = await Engine.FindFlowRun(flow, sequenceId).NotNull();
@@ -103,13 +105,13 @@ public partial class WorkflowsController : ControllerBase
         return Json(Engine.GetFlowRunDefinition(flow, run, actions), run.EntityTag);
     }
 
-    [HttpGet("workflows/{workflowId}/runs/{sequenceId}/contents/{contentName}")]
-    public async Task<IActionResult> GetRunContents([FromRoute] string workflowId, [FromRoute] string sequenceId, [FromRoute] string contentName)
+    [HttpGet("{workflowId}/runs/{sequenceId}/contents/{contentName}")]
+    public virtual async Task<IActionResult> GetRunContents([FromRoute] string workflowId, [FromRoute] string sequenceId, [FromRoute] string contentName)
     {
         Flow flow = await Engine.FindFlowByIdOrName(workflowId).NotNull();
         FlowRun run = await Engine.FindFlowRun(flow, sequenceId).NotNull();
 
-        JToken result = contentName switch
+        JToken? result = contentName switch
         {
             "TriggerInputs" => await Engine.GetContentLink(flow, run.FlowRunSequenceId, run.Trigger?.InputsLink),
             "TriggerOutputs" => await Engine.GetContentLink(flow, run.FlowRunSequenceId, run.Trigger?.OutputsLink),
@@ -129,7 +131,7 @@ public partial class WorkflowsController : ControllerBase
             "application/json");
     }
 
-    [HttpGet("workflows/{workflowId}/runs/{sequenceId}/actions")]
+    [HttpGet("{workflowId}/runs/{sequenceId}/actions")]
     public async Task<IActionResult> GetRunActions([FromRoute] string workflowId, [FromRoute] string sequenceId)
     {
         Flow flow = await Engine.FindFlowByIdOrName(workflowId).NotNull();
@@ -138,7 +140,7 @@ public partial class WorkflowsController : ControllerBase
         return Json(actions.Select(action => Engine.GetFlowRunActionDefinition(flow, run, action)), run.EntityTag);
     }
 
-    [HttpGet("workflows/{workflowId}/runs/{sequenceId}/actions/{actionName}")]
+    [HttpGet("{workflowId}/runs/{sequenceId}/actions/{actionName}")]
     public async Task<IActionResult> GetRunAction([FromRoute] string workflowId, [FromRoute] string sequenceId, [FromRoute] string actionName)
     {
         Flow flow = await Engine.FindFlowByIdOrName(workflowId).NotNull();
@@ -147,7 +149,7 @@ public partial class WorkflowsController : ControllerBase
         return Json(Engine.GetFlowRunActionDefinition(flow, run, action), action.EntityTag);
     }
 
-    [HttpGet("workflows/{workflowId}/runs/{sequenceId}/actions/{actionName}/contents/{contentName}")]
+    [HttpGet("{workflowId}/runs/{sequenceId}/actions/{actionName}/contents/{contentName}")]
     public async Task<IActionResult> GetRunActionContents([FromRoute] string workflowId, [FromRoute] string sequenceId, [FromRoute] string actionName, [FromRoute] string contentName)
     {
         Flow flow = await Engine.FindFlowByIdOrName(workflowId).NotNull();
@@ -170,7 +172,7 @@ public partial class WorkflowsController : ControllerBase
             "application/json");
     }
 
-    [HttpPost("workflows/{workflowName}")]
+    [HttpPost("{workflowName}")]
     public async Task<IActionResult> UpsertWorkflow([FromRoute] string workflowName)
     {
         FlowPropertiesDefinition definition =
@@ -188,9 +190,15 @@ public partial class WorkflowsController : ControllerBase
         return new NewtonsoftJsonResult(resource) { StatusCode = statusCode };
     }
 
-    private NewtonsoftJsonResult Json(IEnumerable<ResourceDefinition> resources, string etag = null)
+    private NewtonsoftJsonResult Json(IEnumerable<ResourceDefinition> resources, string? etag = null)
     {
         if (etag != null) Response.Headers.ETag = etag;
         return new NewtonsoftJsonResult(new { value = resources.ToList() });
+    }
+
+    public virtual async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+    {
+        engine = await workflowEngineProvider.GetEngineAsync();
+        await next();
     }
 }
