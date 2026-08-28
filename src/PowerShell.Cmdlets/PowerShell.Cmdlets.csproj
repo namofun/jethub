@@ -8,7 +8,7 @@
     <PackageId>Xylab.Management.Automation.Cmdlets</PackageId>
   </PropertyGroup>
 
-  <Import Project="..\..\build\NugetPackage.Backend.props" />
+  <Import Project="..\..\build\NugetPackage.props" />
 
   <ItemGroup>
     <PackageReference Include="System.Management.Automation" />

@@ -7,13 +7,6 @@
     <NoWarn>$(NoWarn);MSB3246</NoWarn>
   </PropertyGroup>
 
-  <Target Name="SetGitInformationalVersion" AfterTargets="InitializeSourceControlInformation" BeforeTargets="GetAssemblyAttributes">
-    <ItemGroup>
-      <AssemblyMetadata Include="GitCommitId" Value="$(SourceRevisionId)" Condition="'$(SourceRevisionId)' != ''" />
-      <AssemblyMetadata Include="GitBranchName" Value="$(SourceBranchName)" Condition="'$(SourceBranchName)' != ''" />
-    </ItemGroup>
-  </Target>
-
   <ItemGroup>
     <PackageReference Include="Microsoft.PowerShell.SDK" />
   </ItemGroup>
@@ -22,7 +15,7 @@
     <ProjectReference Include="..\Management.Interop\Management.Interop.csproj" />
     <ProjectReference Include="..\Management.ProjectKudu\Management.Kudu.csproj" />
     <ProjectReference Include="..\PowerShell.Cmdlets\PowerShell.Cmdlets.csproj" />
-    <ProjectReference Include="..\PowerShell.WebService\PowerShell.WebService.csproj" />
+    <ProjectReference Include="..\PowerShell.WebService\Remoting.PowerShellWebService.csproj" />
     <ProjectReference Include="..\Workflows.LogicApps\Workflows.LogicApps.csproj" />
   </ItemGroup>
 

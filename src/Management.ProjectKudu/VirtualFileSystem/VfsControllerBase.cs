@@ -41,6 +41,7 @@ public abstract class VfsControllerBase : ControllerBase
     }
 
     [AcceptVerbs("GET", "HEAD")]
+    [Route("{**path}")]
     public virtual Task<IActionResult> GetItem()
     {
         string localFilePath = GetLocalFilePath();
@@ -81,7 +82,7 @@ public abstract class VfsControllerBase : ControllerBase
         }
     }
 
-    [HttpPut]
+    [HttpPut("{**path}")]
     public virtual Task<IActionResult> PutItem()
     {
         string localFilePath = GetLocalFilePath();
@@ -104,7 +105,7 @@ public abstract class VfsControllerBase : ControllerBase
         }
     }
 
-    [HttpDelete]
+    [HttpDelete("{**path}")]
     public virtual Task<IActionResult> DeleteItem(bool recursive = false)
     {
         string localFilePath = GetLocalFilePath();
@@ -326,5 +327,5 @@ public abstract class VfsControllerBase : ControllerBase
         => Task.FromResult<IActionResult>(StatusCode(StatusCodes.Status412PreconditionFailed, reason));
 
     protected Task<IActionResult> RedirectPreserveMethod(Uri uri)
-        => Task.FromResult<IActionResult>(RedirectPreserveMethod(uri.ToString()));
+        => Task.FromResult<IActionResult>(RedirectPreserveMethod(uri.AbsolutePath));
 }

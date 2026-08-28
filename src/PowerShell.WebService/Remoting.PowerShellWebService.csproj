@@ -9,7 +9,7 @@
     <PackageId>Xylab.Remoting.PowerShellWebService</PackageId>
   </PropertyGroup>
 
-  <Import Project="..\..\build\NugetPackage.Backend.props" />
+  <Import Project="..\..\build\NugetPackage.props" />
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

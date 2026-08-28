@@ -1,0 +1,13 @@
+<Project>
+
+  <Target Name="SetGitInformationalVersion"
+          Condition="'$(MSBuildProjectExtension)' == '.csproj'"
+          AfterTargets="InitializeSourceControlInformation"
+          BeforeTargets="GetAssemblyAttributes">
+    <ItemGroup>
+      <AssemblyMetadata Include="GitCommitId" Value="$(SourceRevisionId)" Condition="'$(SourceRevisionId)' != ''" />
+      <AssemblyMetadata Include="GitBranchName" Value="$(SourceBranchName)" Condition="'$(SourceBranchName)' != ''" />
+    </ItemGroup>
+  </Target>
+
+</Project>

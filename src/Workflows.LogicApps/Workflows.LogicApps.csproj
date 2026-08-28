@@ -9,7 +9,7 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
-  <Import Project="..\..\build\NugetPackage.Backend.props" />
+  <Import Project="..\..\build\NugetPackage.props" />
 
   <ItemGroup>
     <EmbeddedResource Include="Engine\AzureConfig.json" />
@@ -21,7 +21,7 @@
     <PackageReference Include="Google.Protobuf" />
     <PackageReference Include="ICU4N" />
     <PackageReference Include="MessagePack" />
-    <PackageReference Include="Microsoft.Azure.Workflows.WebJobs.Extension" />
+    <PackageReference Include="Microsoft.Azure.Workflows.WebJobs.Extension" IncludeAssets="compile;runtime" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" />
     <PackageReference Include="Microsoft.CodeAnalysis.Scripting.Common" />
     <PackageReference Include="Microsoft.SemanticKernel.Core" />

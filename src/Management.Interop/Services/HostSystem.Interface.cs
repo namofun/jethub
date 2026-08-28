@@ -1,14 +1,13 @@
 ﻿namespace Xylab.Management.Services;
 
+using System;
 using System.Collections.Generic;
-using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Xylab.Management.Models;
 public interface IHostSystem
 {
     Task<SystemInformation> GetSystemStatusAsync();
 
-    [SupportedOSPlatform("linux")]
     Task<List<InstalledPackage>> GetPackagesAsync(string root = "/");
 
     Task<List<CpuInformation>> GetCpusAsync();
@@ -20,4 +19,20 @@ public interface IHostSystem
     Task<List<ProcessInformation>> GetProcessesAsync();
 
     Task<List<ServiceInformation>> GetServicesAsync();
+
+    public static IHostSystem CreateDefault()
+    {
+        if (OperatingSystem.IsLinux())
+        {
+            return new LinuxSystem();
+        }
+        else if (OperatingSystem.IsWindows())
+        {
+            return new WindowsSystem();
+        }
+        else
+        {
+            throw new PlatformNotSupportedException("Unsupported operating system.");
+        }
+    }
 }

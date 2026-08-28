@@ -23,19 +23,11 @@ builder.Services.Configure<GlobalOptions>(options =>
 
 builder.Services.AddSignalR(o => o.EnableDetailedErrors = true);
 
+// add Virtual File System services
 builder.Services.AddSingleton<IFileSystemV2, FileSystemV2>();
-if (OperatingSystem.IsLinux())
-{
-    builder.Services.AddSingleton<IHostSystem, LinuxSystem>();
-}
-else if (OperatingSystem.IsWindows())
-{
-    builder.Services.AddSingleton<IHostSystem, WindowsSystem>();
-}
-else
-{
-    builder.Services.AddSingleton<IHostSystem, FakeSystem>();
-}
+
+// add System Interop services
+builder.Services.AddSingleton<IHostSystem>(IHostSystem.CreateDefault());
 
 builder.Services.AddWorkflowEngine(options =>
 {

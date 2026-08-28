@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 using Xylab.Management.Models;
 using Xylab.Management.Services;
 
-[Route("system")]
-public class SystemController(IHostSystem hostSystem) : ControllerBase
+[Route("sysinfo")]
+public class SysInfoController(IHostSystem hostSystem) : ControllerBase
 {
     [HttpGet("status")]
     public async Task<ActionResult<SystemInformation>> Status()
@@ -16,12 +16,12 @@ public class SystemController(IHostSystem hostSystem) : ControllerBase
         return await hostSystem.GetSystemStatusAsync();
     }
 
-    [HttpGet("dpkg")]
-    public async Task<ActionResult<List<InstalledPackage>>> Dpkg([FromQuery] bool isChroot)
+    [HttpGet("packages")]
+    public async Task<ActionResult<List<InstalledPackage>>> Packages()
     {
         if (OperatingSystem.IsLinux())
         {
-            return await hostSystem.GetPackagesAsync(isChroot ? "/chroot/domjudge/" : "/");
+            return await hostSystem.GetPackagesAsync("/");
         }
         else
         {
