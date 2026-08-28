@@ -1,4 +1,4 @@
-﻿namespace Xylab.Management.Automation;
+﻿namespace Xylab.Remoting.PowerShellClient;
 
 using System.Collections;
 using System.Collections.Generic;

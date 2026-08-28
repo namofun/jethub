@@ -12,7 +12,7 @@ process {
     $client = $null
     try
     {
-        $client = [Xylab.Management.Automation.PowerShellRemoteClient]::new($RemoteEndpoint)
+        $client = [Xylab.Remoting.PowerShellClient.PowerShellRemoteClient]::new($RemoteEndpoint)
         $client.Connect()
 
         $stream = $client.GetStream("ExecuteScript", $ScriptContent)
@@ -20,7 +20,7 @@ process {
 
         while ($enumerator.MoveNextAsync().AsTask().Result)
         {
-            $content = [Xylab.Management.Automation.PowerShellRemoteClient]::DeserializeContent($enumerator.Current, $null)
+            $content = [Xylab.Remoting.PowerShellClient.PowerShellRemoteClient]::DeserializeContent($enumerator.Current, $null)
             switch ($enumerator.Current.Key)
             {
                 "Output" { $content }
