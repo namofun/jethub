@@ -7,6 +7,7 @@
     <AssemblyName>Xylab.Remoting.PowerShellWebService</AssemblyName>
     <RootNamespace>Xylab.Remoting.PowerShellWebService</RootNamespace>
     <PackageId>Xylab.Remoting.PowerShellWebService</PackageId>
+    <Description>PowerShell web service for remote management</Description>
   </PropertyGroup>
 
   <Import Project="..\..\build\NugetPackage.props" />

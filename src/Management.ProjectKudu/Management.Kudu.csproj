@@ -5,17 +5,18 @@
     <AssemblyName>Xylab.Management.Kudu</AssemblyName>
     <RootNamespace>Xylab.Management</RootNamespace>
     <NoWarn>$(NoWarn);SYSLIB0013</NoWarn>
-    <DescriptionAttach>Useful tools from ProjectKudu</DescriptionAttach>
+    <Description>Useful tools from ProjectKudu including VirtualFileSystem</Description>
   </PropertyGroup>
 
   <Import Project="..\..\build\NugetPackage.props" />
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="System.IO.Abstractions" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.IO.Abstractions" />
+    <None Include="LICENSE" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

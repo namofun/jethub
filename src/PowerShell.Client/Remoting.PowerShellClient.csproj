@@ -6,6 +6,7 @@
     <AssemblyName>Xylab.Remoting.PowerShellClient</AssemblyName>
     <RootNamespace>Xylab.Remoting.PowerShellClient</RootNamespace>
     <PackageId>Xylab.Remoting.PowerShellClient</PackageId>
+    <Description>PowerShell client for remote management</Description>
   </PropertyGroup>
 
   <Import Project="..\..\build\NugetPackage.props" />
