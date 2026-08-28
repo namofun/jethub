@@ -1,4 +1,4 @@
-﻿namespace Xylab.Management.Automation.WebServices;
+﻿namespace Xylab.Remoting.PowerShellWebService;
 
 using System;
 using System.Collections;
@@ -12,15 +12,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 
-internal class PowerShellInvoker : IAsyncEnumerable<KeyValuePair<string, string>>
+internal class PowerShellInvoker(PowerShell powershell) : IAsyncEnumerable<KeyValuePair<string, string>>
 {
-    private readonly PowerShell _powershell;
-
-    public PowerShellInvoker(PowerShell powershell)
-    {
-        _powershell = powershell;
-    }
-
     public IAsyncEnumerator<KeyValuePair<string, string>> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
         PSDataCollection<PSObject> input = new(), output = new();
@@ -29,8 +22,8 @@ internal class PowerShellInvoker : IAsyncEnumerable<KeyValuePair<string, string>
         CancellationTokenSource cts = new();
         CancellationTokenSource aggregatedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cts.Token);
 
-        Enumerator enumerator = new(output, _powershell.Streams, aggregatedCts.Token);
-        Task.Factory.FromAsync(_powershell.BeginInvoke(input, output), _powershell.EndInvoke).ContinueWith(_ => cts.Cancel());
+        Enumerator enumerator = new(output, powershell.Streams, aggregatedCts.Token);
+        Task.Factory.FromAsync(powershell.BeginInvoke(input, output), powershell.EndInvoke).ContinueWith(_ => cts.Cancel());
 
         return enumerator;
     }
@@ -115,49 +108,49 @@ internal class PowerShellInvoker : IAsyncEnumerable<KeyValuePair<string, string>
             this._semaphoreSlim.Release();
         }
 
-        private void OnWriteOutput(object sender, DataAddingEventArgs e)
+        private void OnWriteOutput(object? sender, DataAddingEventArgs e)
         {
             this._queue.Enqueue(KeyValuePair.Create("Output", PSSerializer.Serialize((PSObject)e.ItemAdded)));
             this._semaphoreSlim.Release();
         }
 
-        private void OnWriteProgress(object sender, DataAddingEventArgs e)
+        private void OnWriteProgress(object? sender, DataAddingEventArgs e)
         {
             this.OnWriteRecord("Progress", (ProgressRecord)e.ItemAdded);
         }
 
-        private void OnWriteDebug(object sender, DataAddingEventArgs e)
+        private void OnWriteDebug(object? sender, DataAddingEventArgs e)
         {
             this.OnWriteRecord("Debug", (DebugRecord)e.ItemAdded);
         }
 
-        private void OnWriteVerbose(object sender, DataAddingEventArgs e)
+        private void OnWriteVerbose(object? sender, DataAddingEventArgs e)
         {
             this.OnWriteRecord("Verbose", (VerboseRecord)e.ItemAdded);
         }
 
-        private void OnWriteInformation(object sender, DataAddingEventArgs e)
+        private void OnWriteInformation(object? sender, DataAddingEventArgs e)
         {
             this.OnWriteRecord("Information", (InformationRecord)e.ItemAdded);
         }
 
-        private void OnWriteError(object sender, DataAddingEventArgs e)
+        private void OnWriteError(object? sender, DataAddingEventArgs e)
         {
             this.OnWriteRecord("Error", (ErrorRecord)e.ItemAdded);
         }
 
-        private void OnWriteWarning(object sender, DataAddingEventArgs e)
+        private void OnWriteWarning(object? sender, DataAddingEventArgs e)
         {
             this.OnWriteRecord("Warning", (WarningRecord)e.ItemAdded);
         }
     }
 }
 
-public class PowerShellHub : Hub
+public class PowerShellHub(PowerShellRunspaceFactory runspaceFactory) : Hub
 {
     public async IAsyncEnumerable<KeyValuePair<string, string>> ExecuteScript(string scriptContent)
     {
-        using Runspace runspace = Bundle.CreateRunspace();
+        using Runspace runspace = runspaceFactory.CreateRunspace();
         using PowerShell pwsh = PowerShell.Create(runspace);
         pwsh.AddScript(scriptContent);
 
@@ -169,7 +162,7 @@ public class PowerShellHub : Hub
 
     public async IAsyncEnumerable<KeyValuePair<string, string>> ExecuteCmdlet(string cmdletName, string serializedBoundParameters)
     {
-        using Runspace runspace = Bundle.CreateRunspace();
+        using Runspace runspace = runspaceFactory.CreateRunspace();
         using PowerShell pwsh = PowerShell.Create(runspace);
         pwsh.AddCommand(cmdletName);
 

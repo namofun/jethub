@@ -15,18 +15,14 @@
   </Target>
 
   <ItemGroup>
-    <Compile Include="..\PowerShell.Cmdlets\WebServices\PowerShellController.cs" Link="Controllers\PowerShellController.cs" />
-    <Compile Include="..\PowerShell.Cmdlets\WebServices\PowerShellHub.cs" Link="Controllers\PowerShellHub.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.PowerShell.SDK" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Management.Interop\Management.Interop.csproj" />
     <ProjectReference Include="..\Management.ProjectKudu\Management.Kudu.csproj" />
-    <ProjectReference Include="..\PowerShell.Cmdlets\Automation.Bundle.csproj" />
+    <ProjectReference Include="..\PowerShell.Cmdlets\PowerShell.Cmdlets.csproj" />
+    <ProjectReference Include="..\PowerShell.WebService\PowerShell.WebService.csproj" />
     <ProjectReference Include="..\Workflows.LogicApps\Workflows.LogicApps.csproj" />
   </ItemGroup>
 

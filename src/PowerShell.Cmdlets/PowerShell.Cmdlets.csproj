@@ -3,17 +3,12 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <AssemblyName>Xylab.Management.Automation.Bundle</AssemblyName>
-    <RootNamespace>Xylab.Management.Automation</RootNamespace>
-    <PackageId>Xylab.Management.Automation</PackageId>
+    <AssemblyName>Xylab.Management.Automation.Cmdlets</AssemblyName>
+    <RootNamespace>Xylab.Management.Automation.Cmdlets</RootNamespace>
+    <PackageId>Xylab.Management.Automation.Cmdlets</PackageId>
   </PropertyGroup>
 
   <Import Project="..\..\build\NugetPackage.Backend.props" />
-
-  <ItemGroup>
-    <Compile Remove="WebServices\*" />
-    <Content Include="WebServices\*" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="System.Management.Automation" />

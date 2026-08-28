@@ -4,7 +4,9 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Xylab.Management.Automation.Cmdlets;
 using Xylab.Management.Services;
+using Xylab.Remoting.PowerShellWebService;
 using Xylab.Workflows.LogicApps.Engine;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -40,6 +42,11 @@ builder.Services.AddWorkflowEngine(options =>
     options.AzureStorageAccountConnectionString = "UseDevelopmentStorage=true";
 });
 
+builder.Services.AddPowerShellWebService(options =>
+{
+    options.AssembliesToImport.Add(typeof(SayHelloWorld).Assembly);
+});
+
 var app = builder.Build();
 
 app.UseRouting();
@@ -47,6 +54,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<LogHub>("/api/log-stream");
-app.MapHub<Xylab.Management.Automation.WebServices.PowerShellHub>("/api/psws");
+app.MapPowerShellWebSocket("/powershell/stream");
 
 app.Run();

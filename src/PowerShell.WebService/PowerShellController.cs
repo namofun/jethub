@@ -1,4 +1,4 @@
-﻿namespace Xylab.Management.Automation.WebServices;
+﻿namespace Xylab.Remoting.PowerShellWebService;
 
 using System.Collections;
 using System.IO;
@@ -8,10 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-[Route("/api/pwsh/[action]")]
-public class PowerShellController : ControllerBase
+public abstract class PowerShellControllerBase(PowerShellRunspaceFactory runspaceFactory) : ControllerBase
 {
-    [HttpPost("{cmdletName}")]
+    [HttpPost("cmdlet/{cmdletName}")]
     public async Task<IActionResult> Cmdlet([FromRoute] string cmdletName)
     {
         if (Request.ContentType == null || !Request.ContentType.StartsWith("application/xml"))
@@ -33,7 +32,7 @@ public class PowerShellController : ControllerBase
             boundParameters = (Hashtable)inputObject.ImmediateBaseObject;
         }
 
-        using Runspace runspace = Bundle.CreateRunspace();
+        using Runspace runspace = runspaceFactory.CreateRunspace();
         using PowerShell pwsh = PowerShell.Create(runspace);
         pwsh.AddCommand(cmdletName).AddParameters(boundParameters);
         var result = await pwsh.InvokeAsync();
@@ -45,7 +44,7 @@ public class PowerShellController : ControllerBase
         };
     }
 
-    [HttpPost]
+    [HttpPost("script")]
     public async Task<IActionResult> Script()
     {
         if (Request.ContentType == null || !Request.ContentType.StartsWith("text/plain"))
@@ -60,7 +59,7 @@ public class PowerShellController : ControllerBase
             ps1Content = await sr.ReadToEndAsync();
         }
 
-        using Runspace runspace = Bundle.CreateRunspace();
+        using Runspace runspace = runspaceFactory.CreateRunspace();
         using PowerShell pwsh = PowerShell.Create(runspace);
         pwsh.AddScript(ps1Content);
         var result = await pwsh.InvokeAsync();

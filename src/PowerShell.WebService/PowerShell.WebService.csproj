@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Xylab.Remoting.PowerShellWebService</AssemblyName>
+    <RootNamespace>Xylab.Remoting.PowerShellWebService</RootNamespace>
+    <PackageId>Xylab.Remoting.PowerShellWebService</PackageId>
+  </PropertyGroup>
+
+  <Import Project="..\..\build\NugetPackage.Backend.props" />
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="System.Management.Automation" />
+  </ItemGroup>
+
+</Project>
