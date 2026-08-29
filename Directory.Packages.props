@@ -24,6 +24,7 @@
     <PackageVersion Include="MSTest.TestAdapter" Version="4.3.3" />
     <PackageVersion Include="MSTest.TestFramework" Version="4.3.3" />
     <PackageVersion Include="SSH.NET" Version="2026.0.0" />
+    <PackageVersion Include="System.Formats.Nrbf" Version="10.0.11" />
     <PackageVersion Include="System.IO.Abstractions" Version="13.2.28" />
     <PackageVersion Include="System.Management.Automation" Version="$(PowerShellVersion)" />
     <PackageVersion Include="Tmds.DBus" Version="0.92.0" />

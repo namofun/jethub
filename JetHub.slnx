@@ -15,13 +15,15 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Management.Interop/Management.Interop.csproj" />
+    <Project Path="src/Management.MSDeploy/Management.WebDeploy.csproj" />
     <Project Path="src/Management.ProjectKudu/Management.Kudu.csproj" />
     <Project Path="src/PowerShell.Client/Remoting.PowerShellClient.csproj" />
     <Project Path="src/PowerShell.Cmdlets/PowerShell.Cmdlets.csproj" />
-    <Project Path="src/PowerShell.WebService/Remoting.PowerShellWebService.csproj" Id="ba457dc2-5aa9-4c31-a44f-4136ff1b17bc" />
+    <Project Path="src/PowerShell.WebService/Remoting.PowerShellWebService.csproj" />
     <Project Path="src/Workflows.LogicApps/Workflows.LogicApps.csproj" />
   </Folder>
   <Folder Name="/test/">
     <Project Path="test/Management.Interop/Management.Interop.UnitTests.csproj" />
+    <Project Path="test/Management.MSDeploy.Tests/Management.WebDeploy.Tests.csproj" />
   </Folder>
 </Solution>

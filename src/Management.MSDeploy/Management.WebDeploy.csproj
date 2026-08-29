@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Xylab.Management.WebDeploy</AssemblyName>
+    <RootNamespace>Xylab.Management.WebDeploy</RootNamespace>
+    <PackageId>Xylab.Management.WebDeploy</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Description>Clean-room MSDeploy-compatible static site deployment services</Description>
+  </PropertyGroup>
+
+  <Import Project="..\..\build\NugetPackage.props" />
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Formats.Nrbf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>
