@@ -26,11 +26,20 @@ Register the services from configuration and map both endpoints:
 
 ```csharp
 using Xylab.Management.WebDeploy;
+using Xylab.Management.WebDeploy.Authentication;
+using Xylab.Management.WebDeploy.Deployment;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddWebDeploy()
-    .Bind(builder.Configuration.GetSection(WebDeployOptions.SectionName));
+builder.Services
+    .AddWebDeploy<WebDeployBasicAuthHandler, NginxStaticSite>()
+    .Bind(builder.Configuration.GetSection("WebDeploy"));
+builder.Services
+    .AddOptions<WebDeployBasicAuthOptions>()
+    .Bind(builder.Configuration.GetSection("WebDeploy:Authentication"));
+builder.Services
+    .AddOptions<NginxStaticSiteOptions>()
+    .Bind(builder.Configuration.GetSection("WebDeploy:NginxStaticSite"));
 
 var app = builder.Build();
 app.MapWebDeploy();
@@ -40,16 +49,39 @@ app.Run();
 The equivalent programmatic registration is:
 
 ```csharp
-builder.Services.AddWebDeploy().Configure(options =>
+builder.Services
+    .AddWebDeploy<WebDeployBasicAuthHandler, NginxStaticSite>()
+    .Configure(options =>
+    {
+        options.MaximumRequestBytes = 70 * 1024 * 1024;
+    });
+
+builder.Services.Configure<WebDeployBasicAuthOptions>(options =>
 {
-    options.DeploymentRoot = "/var/www/msdeploy";
     options.Username = "publisher";
     options.Password = builder.Configuration["WebDeployPassword"];
-    options.Nginx.Enabled = true;
-    options.Nginx.Executable = "/usr/bin/sudo";
-    options.Nginx.ArgumentsPrefix = ["-n", "/usr/sbin/nginx"];
+});
+
+builder.Services.Configure<NginxStaticSiteOptions>(options =>
+{
+    options.DeploymentRoot = "/var/www/msdeploy";
+    options.Enabled = true;
+    options.Executable = "/usr/bin/sudo";
+    options.ArgumentsPrefix = ["-n", "/usr/sbin/nginx"];
 });
 ```
+
+## Deployment target abstraction
+
+`MSDeployEndpoint` depends on `IWebDeployDeploymentTarget`, not directly on Nginx or filesystem reconciliation. `NginxStaticSite` is the built-in implementation for immutable, versioned static sites behind Nginx.
+
+A different host can implement `IWebDeployDeploymentTarget` and select it at registration time:
+
+```csharp
+builder.Services.AddWebDeploy<WebDeployBasicAuthHandler, CustomDeploymentTarget>();
+```
+
+The target receives the decoded destination, validated deployment payload, pass state, and `whatIf` state. Its result supplies the object and byte counts used by the MSDeploy change-summary response. Implementations can use the interface's static `ConfigureServices` method to register their own options and dependencies.
 
 Do not expose Basic authentication over unencrypted HTTP. Restrict the service to a trusted network or terminate TLS in front of it.
 

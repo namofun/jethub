@@ -1,27 +1,28 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace Xylab.Management.WebDeploy.Deployment;
 
-public sealed record ReconcileResult(
-    string SiteName,
-    string SiteRoot,
-    int FilesWritten,
-    int FilesDeleted,
-    int DirectoriesCreated,
-    long BytesWritten);
-
-public sealed class StaticSiteReconciler(
-    IOptions<WebDeployOptions> options,
+public sealed class NginxStaticSite(
+    IOptions<NginxStaticSiteOptions> options,
     NginxSiteManager nginx,
-    ILogger<StaticSiteReconciler> logger)
+    ILogger<NginxStaticSite> logger) : IWebDeployDeploymentTarget
 {
     private const string CurrentVersionFile = ".current";
     private readonly SemaphoreSlim _deploymentLock = new(1, 1);
-    private readonly string _deploymentRoot =
-        Path.GetFullPath(options.Value.DeploymentRoot);
+    private readonly string _deploymentRoot = Path.GetFullPath(options.Value.DeploymentRoot);
 
-    public async Task<ReconcileResult> ReconcileAsync(
+    public static void ConfigureServices(IServiceCollection services)
+    {
+        services.AddSingleton<INginxCommandRunner, NginxCommandRunner>();
+        services.AddSingleton<NginxSiteManager>();
+        services.AddOptions<NginxStaticSiteOptions>()
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+    }
+
+    public async Task<WebDeployResult> DeployAsync(
         string destination,
         DeploymentPayload payload,
         bool writeContent,
@@ -32,7 +33,7 @@ public sealed class StaticSiteReconciler(
         await _deploymentLock.WaitAsync(cancellationToken);
         try
         {
-            return await ReconcileLockedAsync(
+            return await DeployLockedAsync(
                 siteName,
                 siteDirectory,
                 payload,
@@ -46,7 +47,7 @@ public sealed class StaticSiteReconciler(
         }
     }
 
-    private async Task<ReconcileResult> ReconcileLockedAsync(
+    private async Task<WebDeployResult> DeployLockedAsync(
         string siteName,
         string siteDirectory,
         DeploymentPayload payload,
@@ -66,16 +67,17 @@ public sealed class StaticSiteReconciler(
 
         EnsureNoSymbolicLinks(siteDirectory);
         var currentRoot = GetCurrentRoot(siteName, siteDirectory);
-        var existingFiles = currentRoot is not null && Directory.Exists(currentRoot)
+        var existingFiles =
+            currentRoot is not null && Directory.Exists(currentRoot)
             ? Directory.EnumerateFiles(currentRoot, "*", SearchOption.AllDirectories)
-                .Select(path => NormalizeRelativePath(
-                    Path.GetRelativePath(currentRoot, path)))
+                .Select(path => NormalizeRelativePath(Path.GetRelativePath(currentRoot, path)))
                 .ToHashSet(StringComparer.OrdinalIgnoreCase)
             : [];
         var filesDeleted = existingFiles.Count(path => !expectedFiles.ContainsKey(path));
-        var directoriesCreated = expectedDirectories.Count(relativePath =>
-            currentRoot is null ||
-            !Directory.Exists(ResolveChild(currentRoot, relativePath)));
+        var directoriesCreated = expectedDirectories.Count(
+            relativePath =>
+                currentRoot is null
+                || !Directory.Exists(ResolveChild(currentRoot, relativePath)));
         var filesWritten = writeContent || dryRun
             ? payload.Files.Count(file => dryRun || file.Content is not null)
             : 0;
@@ -85,7 +87,7 @@ public sealed class StaticSiteReconciler(
 
         if (!writeContent && !dryRun)
         {
-            return new ReconcileResult(
+            return new WebDeployResult(
                 siteName,
                 currentRoot ?? siteDirectory,
                 0,
@@ -96,7 +98,7 @@ public sealed class StaticSiteReconciler(
 
         if (dryRun)
         {
-            return new ReconcileResult(
+            return new WebDeployResult(
                 siteName,
                 currentRoot ?? siteDirectory,
                 filesWritten,
@@ -118,9 +120,7 @@ public sealed class StaticSiteReconciler(
         EnsureNoSymbolicLinks(siteDirectory);
         var version = CreateVersion(siteDirectory);
         var versionRoot = Path.Combine(siteDirectory, version);
-        var stagingRoot = Path.Combine(
-            siteDirectory,
-            $".{version}.{Guid.NewGuid():N}.staging");
+        var stagingRoot = Path.Combine(siteDirectory, $".{version}.{Guid.NewGuid():N}.staging");
         Directory.CreateDirectory(stagingRoot);
         var previousState = ReadCurrentVersion(siteDirectory);
         var versionPublished = false;
@@ -147,10 +147,7 @@ public sealed class StaticSiteReconciler(
             WriteCurrentVersion(siteDirectory, version);
             try
             {
-                await nginx.EnsureSiteAsync(
-                    siteName,
-                    versionRoot,
-                    CancellationToken.None);
+                await nginx.EnsureSiteAsync(siteName, versionRoot, CancellationToken.None);
             }
             catch
             {
@@ -167,18 +164,15 @@ public sealed class StaticSiteReconciler(
                 Directory.Delete(stagingRoot, recursive: true);
             }
 
-            if (versionPublished &&
-                !string.Equals(
-                    ReadCurrentVersion(siteDirectory),
-                    version,
-                    StringComparison.Ordinal) &&
-                Directory.Exists(versionRoot))
+            if (versionPublished
+                && !string.Equals(ReadCurrentVersion(siteDirectory), version, StringComparison.Ordinal)
+                && Directory.Exists(versionRoot))
             {
                 Directory.Delete(versionRoot, recursive: true);
             }
         }
 
-        return new ReconcileResult(
+        return new WebDeployResult(
             siteName,
             versionRoot,
             filesWritten,
@@ -190,8 +184,7 @@ public sealed class StaticSiteReconciler(
     private string? GetCurrentRoot(string siteName, string siteDirectory)
     {
         var configuredRoot = nginx.GetConfiguredRoot(siteName);
-        if (configuredRoot is not null &&
-            IsVersionRoot(configuredRoot, siteDirectory))
+        if (configuredRoot is not null && IsVersionRoot(configuredRoot, siteDirectory))
         {
             return configuredRoot;
         }
@@ -209,8 +202,8 @@ public sealed class StaticSiteReconciler(
     private static string CreateVersion(string siteDirectory)
     {
         var version = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        while (Directory.Exists(Path.Combine(siteDirectory, version.ToString())) ||
-               File.Exists(Path.Combine(siteDirectory, $"{version}.conf")))
+        while (Directory.Exists(Path.Combine(siteDirectory, version.ToString()))
+            || File.Exists(Path.Combine(siteDirectory, $"{version}.conf")))
         {
             version++;
         }
@@ -240,9 +233,7 @@ public sealed class StaticSiteReconciler(
         File.Move(temporaryPath, path, overwrite: true);
     }
 
-    private static void RestoreCurrentVersion(
-        string siteDirectory,
-        string? previousVersion)
+    private static void RestoreCurrentVersion(string siteDirectory, string? previousVersion)
     {
         var path = Path.Combine(siteDirectory, CurrentVersionFile);
         if (previousVersion is null)
@@ -254,16 +245,10 @@ public sealed class StaticSiteReconciler(
         WriteCurrentVersion(siteDirectory, previousVersion);
     }
 
-    private void PruneVersions(
-        string siteDirectory,
-        string currentVersion,
-        string? previousRoot)
+    private void PruneVersions(string siteDirectory, string currentVersion, string? previousRoot)
     {
-        var preserved = new HashSet<string>(
-            [currentVersion],
-            StringComparer.Ordinal);
-        if (previousRoot is not null &&
-            IsVersionRoot(previousRoot, siteDirectory))
+        var preserved = new HashSet<string>([currentVersion], StringComparer.Ordinal);
+        if (previousRoot is not null && IsVersionRoot(previousRoot, siteDirectory))
         {
             preserved.Add(Path.GetFileName(previousRoot));
         }
@@ -304,12 +289,9 @@ public sealed class StaticSiteReconciler(
         var fullPath = Path.GetFullPath(path);
         var parent = Path.GetDirectoryName(fullPath);
         var version = Path.GetFileName(fullPath);
-        return string.Equals(
-                   parent,
-                   Path.GetFullPath(siteDirectory),
-                   StringComparison.OrdinalIgnoreCase) &&
-               version.Length > 0 &&
-               version.All(char.IsAsciiDigit);
+        return string.Equals(parent, Path.GetFullPath(siteDirectory), StringComparison.OrdinalIgnoreCase)
+            && version.Length > 0
+            && version.All(char.IsAsciiDigit);
     }
 
     private static void EnsureNoSymbolicLinks(string siteRoot)
@@ -344,8 +326,10 @@ public sealed class StaticSiteReconciler(
         }
     }
 
-    private static bool IsSymbolicLink(string path) =>
-        (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0;
+    private static bool IsSymbolicLink(string path)
+    {
+        return (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0;
+    }
 
     private (string SiteName, string SiteRoot) ResolveDestination(string destination)
     {
@@ -354,25 +338,24 @@ public sealed class StaticSiteReconciler(
             throw new InvalidDataException("The deployment destination must be a relative path.");
         }
 
-        var segments = destination
-            .Replace('\\', '/')
-            .Split('/', StringSplitOptions.RemoveEmptyEntries);
-        if (segments.Length is < 1 or > 2 ||
-            (segments.Length == 2 &&
-             !string.Equals(segments[1], "wwwroot", StringComparison.OrdinalIgnoreCase)) ||
-            !IsSafeSiteName(segments[0]))
+        var segments = destination.Replace('\\', '/').Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (segments.Length is < 1 or > 2
+            || (segments.Length == 2
+                && !string.Equals(segments[1], "wwwroot", StringComparison.OrdinalIgnoreCase))
+            || !IsSafeSiteName(segments[0]))
         {
-            throw new InvalidDataException(
-                "The destination must be '<siteName>' or '<siteName>\\wwwroot'.");
+            throw new InvalidDataException("The destination must be '<siteName>' or '<siteName>\\wwwroot'.");
         }
 
         var siteName = segments[0];
         return (siteName, ResolveChild(_deploymentRoot, siteName));
     }
 
-    private static string NormalizeRelativePath(string path) =>
-        path.Replace('\\', Path.DirectorySeparatorChar)
-            .Replace('/', Path.DirectorySeparatorChar);
+    private static string NormalizeRelativePath(string path)
+    {
+        return path.Replace('\\', Path.DirectorySeparatorChar)
+                   .Replace('/', Path.DirectorySeparatorChar);
+    }
 
     private static string ResolveChild(string root, string relativePath)
     {
@@ -390,14 +373,11 @@ public sealed class StaticSiteReconciler(
 
     private static bool IsSafeSiteName(string siteName)
     {
-        if (siteName.Length is < 1 or > 128 ||
-            !char.IsAsciiLetterOrDigit(siteName[0]))
+        if (siteName.Length is < 1 or > 128 || !char.IsAsciiLetterOrDigit(siteName[0]))
         {
             return false;
         }
 
-        return siteName.All(character =>
-            char.IsAsciiLetterOrDigit(character) ||
-            character is '.' or '-');
+        return siteName.All(character => char.IsAsciiLetterOrDigit(character) || character is '.' or '-');
     }
 }

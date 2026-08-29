@@ -12,7 +12,7 @@ using Xylab.Management.WebDeploy.Deployment;
 namespace Xylab.Management.WebDeploy.UnitTests;
 
 [TestClass]
-public sealed class StaticSiteReconcilerTests
+public sealed class NginxStaticSiteTests
 {
     private readonly string _root = Directory.CreateTempSubdirectory().FullName;
 
@@ -32,9 +32,9 @@ public sealed class StaticSiteReconcilerTests
                     7,
                     "body {}"u8.ToArray())
             ]);
-        var reconciler = CreateReconciler();
+        var target = CreateDeploymentTarget();
 
-        var result = await reconciler.ReconcileAsync(
+        var result = await target.DeployAsync(
             "example\\wwwroot",
             payload,
             writeContent: true,
@@ -58,7 +58,7 @@ public sealed class StaticSiteReconcilerTests
             [],
             [new DeploymentFile(4, 2, "replacement.txt", 10, null)]);
 
-        var result = await CreateReconciler().ReconcileAsync(
+        var result = await CreateDeploymentTarget().DeployAsync(
             "example\\wwwroot",
             payload,
             writeContent: false,
@@ -84,7 +84,7 @@ public sealed class StaticSiteReconcilerTests
             [new DeploymentFile(4, 2, "replacement.txt", 10, null)]);
 
         await Assert.ThrowsExactlyAsync<InvalidDataException>(
-            () => CreateReconciler().ReconcileAsync(
+            () => CreateDeploymentTarget().DeployAsync(
                 "example\\wwwroot",
                 payload,
                 writeContent: true,
@@ -105,25 +105,22 @@ public sealed class StaticSiteReconcilerTests
         var payload = new DeploymentPayload(
             [],
             [new DeploymentFile(4, 2, "replacement.txt", 3, "new"u8.ToArray())]);
-        var options = Options.Create(new WebDeployOptions
+        var options = Options.Create(new NginxStaticSiteOptions
         {
             DeploymentRoot = _root,
-            Nginx = new NginxOptions
-            {
-                Enabled = true,
-                ConfigurationDirectory = Path.Combine(_root, "nginx", "enabled")
-            }
+            Enabled = true,
+            ConfigurationDirectory = Path.Combine(_root, "nginx", "enabled")
         });
-        var reconciler = new StaticSiteReconciler(
+        var target = new NginxStaticSite(
             options,
             new NginxSiteManager(
                 options,
                 new FailingNginxRunner(),
                 NullLogger<NginxSiteManager>.Instance),
-            NullLogger<StaticSiteReconciler>.Instance);
+            NullLogger<NginxStaticSite>.Instance);
 
         await Assert.ThrowsExactlyAsync<InvalidOperationException>(
-            () => reconciler.ReconcileAsync(
+            () => target.DeployAsync(
                 "example\\wwwroot",
                 payload,
                 writeContent: true,
@@ -140,24 +137,21 @@ public sealed class StaticSiteReconcilerTests
     public async Task FailedNginxSwitchKeepsPreviousContentAndConfigurationVersion()
     {
         var runner = new ToggleNginxRunner();
-        var options = Options.Create(new WebDeployOptions
+        var options = Options.Create(new NginxStaticSiteOptions
         {
             DeploymentRoot = _root,
-            Nginx = new NginxOptions
-            {
-                Enabled = true,
-                ConfigurationDirectory = Path.Combine(_root, "nginx", "enabled")
-            }
+            Enabled = true,
+            ConfigurationDirectory = Path.Combine(_root, "nginx", "enabled")
         });
         var manager = new NginxSiteManager(
             options,
             runner,
             NullLogger<NginxSiteManager>.Instance);
-        var reconciler = new StaticSiteReconciler(
+        var target = new NginxStaticSite(
             options,
             manager,
-            NullLogger<StaticSiteReconciler>.Instance);
-        var first = await reconciler.ReconcileAsync(
+            NullLogger<NginxStaticSite>.Instance);
+        var first = await target.DeployAsync(
             "example\\wwwroot",
             new DeploymentPayload(
                 [],
@@ -168,7 +162,7 @@ public sealed class StaticSiteReconcilerTests
 
         runner.Fail = true;
         await Assert.ThrowsExactlyAsync<InvalidOperationException>(
-            () => reconciler.ReconcileAsync(
+            () => target.DeployAsync(
                 "example\\wwwroot",
                 new DeploymentPayload(
                     [],
@@ -197,7 +191,7 @@ public sealed class StaticSiteReconcilerTests
     [TestMethod]
     public async Task RetainsOnlyCurrentAndPreviousVersions()
     {
-        var reconciler = CreateReconciler();
+        var target = CreateDeploymentTarget();
         var roots = new List<string>();
         for (var version = 1; version <= 3; version++)
         {
@@ -212,7 +206,7 @@ public sealed class StaticSiteReconcilerTests
                         content.Length,
                         System.Text.Encoding.UTF8.GetBytes(content))
                 ]);
-            var result = await reconciler.ReconcileAsync(
+            var result = await target.DeployAsync(
                 "example\\wwwroot",
                 payload,
                 writeContent: true,
@@ -243,11 +237,11 @@ public sealed class StaticSiteReconcilerTests
     [DataRow("example/other")]
     public async Task RejectsInvalidDestinations(string destination)
     {
-        var reconciler = CreateReconciler();
+        var target = CreateDeploymentTarget();
         var payload = new DeploymentPayload([], []);
 
         await Assert.ThrowsExactlyAsync<InvalidDataException>(
-            () => reconciler.ReconcileAsync(
+            () => target.DeployAsync(
                 destination,
                 payload,
                 writeContent: true,
@@ -271,14 +265,11 @@ public sealed class StaticSiteReconcilerTests
     [TestMethod]
     public async Task VersionsNginxConfigurationAndRetainsTwo()
     {
-        var options = Options.Create(new WebDeployOptions
+        var options = Options.Create(new NginxStaticSiteOptions
         {
             DeploymentRoot = Path.Combine(_root, "content"),
-            Nginx = new NginxOptions
-            {
-                Enabled = true,
-                ConfigurationDirectory = Path.Combine(_root, "nginx", "enabled")
-            }
+            Enabled = true,
+            ConfigurationDirectory = Path.Combine(_root, "nginx", "enabled")
         });
         var manager = new NginxSiteManager(
             options,
@@ -325,14 +316,11 @@ public sealed class StaticSiteReconcilerTests
         await File.WriteAllTextAsync(
             Path.Combine(configurationDirectory, "example"),
             NginxSiteManager.RenderConfiguration("example", previousRoot, 80));
-        var options = Options.Create(new WebDeployOptions
+        var options = Options.Create(new NginxStaticSiteOptions
         {
             DeploymentRoot = deploymentRoot,
-            Nginx = new NginxOptions
-            {
-                Enabled = true,
-                ConfigurationDirectory = configurationDirectory
-            }
+            Enabled = true,
+            ConfigurationDirectory = configurationDirectory
         });
         var manager = new NginxSiteManager(
             options,
@@ -352,21 +340,21 @@ public sealed class StaticSiteReconcilerTests
     [TestCleanup]
     public void Cleanup() => Directory.Delete(_root, recursive: true);
 
-    private StaticSiteReconciler CreateReconciler()
+    private NginxStaticSite CreateDeploymentTarget()
     {
-        var options = Options.Create(new WebDeployOptions
+        var options = Options.Create(new NginxStaticSiteOptions
         {
             DeploymentRoot = _root,
-            Nginx = new NginxOptions { Enabled = false }
+            Enabled = false
         });
         var nginx = new NginxSiteManager(
             options,
             new NoOpNginxRunner(),
             NullLogger<NginxSiteManager>.Instance);
-        return new StaticSiteReconciler(
+        return new NginxStaticSite(
             options,
             nginx,
-            NullLogger<StaticSiteReconciler>.Instance);
+            NullLogger<NginxStaticSite>.Instance);
     }
 
     private sealed class NoOpNginxRunner : INginxCommandRunner

@@ -5,12 +5,11 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text;
-using Xylab.Management.WebDeploy.Deployment;
 
 public sealed class MSDeployEndpoint(
     IOptions<WebDeployOptions> options,
     IWebDeployAuthenticationHandler authenticationHandler,
-    StaticSiteReconciler reconciler,
+    IWebDeployDeploymentTarget deploymentTarget,
     TraceSessionCoordinator traceSessions,
     ILogger<MSDeployEndpoint> logger)
 {
@@ -91,7 +90,7 @@ public sealed class MSDeployEndpoint(
             var requestBody = await ReadBodyAsync(context.Request.Body, _options.MaximumRequestBytes, cancellationToken);
             var payload = DeploymentPayloadParser.Parse(requestBody);
 
-            var result = await reconciler.ReconcileAsync(
+            var result = await deploymentTarget.DeployAsync(
                 provider.Path,
                 payload,
                 writeContent: string.Equals(context.Request.Headers[MSDeployProtocol.PassIdHeader], "2", StringComparison.Ordinal),

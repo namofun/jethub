@@ -1,29 +1,25 @@
-﻿using System.Diagnostics;
+﻿namespace Xylab.Management.WebDeploy.Deployment;
+
+using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Xylab.Management.WebDeploy.Deployment;
-
 public interface INginxCommandRunner
 {
-    Task RunAsync(
-        IReadOnlyList<string> arguments,
-        CancellationToken cancellationToken);
+    Task RunAsync(IReadOnlyList<string> arguments, CancellationToken cancellationToken);
 }
 
 public sealed class NginxCommandRunner(
-    IOptions<WebDeployOptions> options,
-    ILogger<NginxCommandRunner> logger) : INginxCommandRunner
+    IOptions<NginxStaticSiteOptions> options,
+    ILogger<NginxCommandRunner> logger)
+    : INginxCommandRunner
 {
-    private readonly string _executable = options.Value.Nginx.Executable;
-    private readonly IReadOnlyList<string> _argumentsPrefix =
-        options.Value.Nginx.ArgumentsPrefix;
+    private readonly string _executable = options.Value.Executable;
+    private readonly IReadOnlyList<string> _argumentsPrefix = options.Value.ArgumentsPrefix;
 
-    public async Task RunAsync(
-        IReadOnlyList<string> arguments,
-        CancellationToken cancellationToken)
+    public async Task RunAsync(IReadOnlyList<string> arguments, CancellationToken cancellationToken)
     {
         var startInfo = new ProcessStartInfo
         {
@@ -55,24 +51,21 @@ public sealed class NginxCommandRunner(
 
         logger.LogDebug(
             "{Executable} {Arguments}: {Output}",
-            _executable,
-            string.Join(' ', arguments),
-            output);
+            _executable, string.Join(' ', arguments), output);
     }
 }
 
 public sealed class NginxSiteManager(
-    IOptions<WebDeployOptions> options,
+    IOptions<NginxStaticSiteOptions> options,
     INginxCommandRunner commandRunner,
     ILogger<NginxSiteManager> logger)
 {
     private static readonly SemaphoreSlim ConfigurationLock = new(1, 1);
+    private readonly NginxStaticSiteOptions _options = options.Value;
+    private readonly string _deploymentRoot = Path.GetFullPath(options.Value.DeploymentRoot);
     private static readonly Regex RootDirective = new(
         "^\\s*root\\s+\"(?<path>[^\"]+)\";\\s*$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Multiline);
-    private readonly NginxOptions _options = options.Value.Nginx;
-    private readonly string _deploymentRoot =
-        Path.GetFullPath(options.Value.DeploymentRoot);
 
     public string? GetConfiguredRoot(string siteName)
     {
@@ -81,9 +74,7 @@ public sealed class NginxSiteManager(
             return null;
         }
 
-        var configurationPath = Path.Combine(
-            Path.GetFullPath(_options.ConfigurationDirectory),
-            siteName);
+        var configurationPath = Path.Combine(Path.GetFullPath(_options.ConfigurationDirectory), siteName);
         if (!File.Exists(configurationPath))
         {
             return null;
@@ -92,10 +83,8 @@ public sealed class NginxSiteManager(
         string? configuredVersion = null;
         if ((File.GetAttributes(configurationPath) & FileAttributes.ReparsePoint) != 0)
         {
-            var target = new FileInfo(configurationPath).ResolveLinkTarget(
-                returnFinalTarget: true);
-            if (target is null ||
-                !IsVersionedConfigurationPath(target.FullName, siteName))
+            var target = new FileInfo(configurationPath).ResolveLinkTarget(returnFinalTarget: true);
+            if (target is null || !IsVersionedConfigurationPath(target.FullName, siteName))
             {
                 return null;
             }
@@ -111,92 +100,65 @@ public sealed class NginxSiteManager(
 
         var configuredRoot = Path.GetFullPath(match.Groups["path"].Value);
         var rootVersion = Path.GetFileName(configuredRoot);
-        return IsVersionRoot(configuredRoot, siteName) &&
-               (configuredVersion is null ||
-                string.Equals(
-                    configuredVersion,
-                    rootVersion,
-                    StringComparison.Ordinal))
+        return
+            IsVersionRoot(configuredRoot, siteName)
+                && (configuredVersion is null
+                    || string.Equals(configuredVersion, rootVersion, StringComparison.Ordinal))
             ? configuredRoot
             : null;
     }
 
-    public async Task EnsureSiteAsync(
-        string siteName,
-        string siteRoot,
-        CancellationToken cancellationToken)
+    public async Task EnsureSiteAsync(string siteName, string siteRoot, CancellationToken cancellationToken)
     {
         if (!_options.Enabled)
         {
             return;
         }
 
-        var configurationDirectory =
-            Path.GetFullPath(_options.ConfigurationDirectory);
+        var configurationDirectory = Path.GetFullPath(_options.ConfigurationDirectory);
         var configurationPath = Path.Combine(configurationDirectory, siteName);
         var fullSiteRoot = Path.GetFullPath(siteRoot);
         var siteDirectory = Path.GetDirectoryName(fullSiteRoot)!;
         var version = Path.GetFileName(fullSiteRoot);
-        if (version.Length == 0 ||
-            !version.All(char.IsAsciiDigit) ||
-            !string.Equals(
+        if (version.Length == 0
+            || !version.All(char.IsAsciiDigit)
+            || !string.Equals(
                 siteDirectory,
                 Path.Combine(_deploymentRoot, siteName),
                 StringComparison.OrdinalIgnoreCase))
         {
-            throw new InvalidDataException(
-                "The Nginx site root must be the site's numeric deployment version.");
+            throw new InvalidDataException("The Nginx site root must be the site's numeric deployment version.");
         }
 
-        var versionedConfigurationPath = Path.Combine(
-            siteDirectory,
-            $"{version}.conf");
-        var configuration = RenderConfiguration(
-            siteName,
-            fullSiteRoot,
-            _options.ListenPort);
+        var versionedConfigurationPath = Path.Combine(siteDirectory, $"{version}.conf");
+        var configuration = RenderConfiguration(siteName, fullSiteRoot, _options.ListenPort);
 
         await ConfigurationLock.WaitAsync(cancellationToken);
         try
         {
             Directory.CreateDirectory(configurationDirectory);
             Directory.CreateDirectory(siteDirectory);
-            var previousConfiguration = await CaptureActiveConfigurationAsync(
-                configurationPath,
-                cancellationToken);
-            var previousVersion = GetActiveVersion(
-                configurationPath,
-                siteDirectory);
+            var previousConfiguration = await CaptureActiveConfigurationAsync(configurationPath, cancellationToken);
+            var previousVersion = GetActiveVersion(configurationPath, siteDirectory);
             if (previousVersion is not null)
             {
-                var previousVersionPath = Path.Combine(
-                    siteDirectory,
-                    $"{previousVersion}.conf");
+                var previousVersionPath = Path.Combine(siteDirectory, $"{previousVersion}.conf");
                 if (!File.Exists(previousVersionPath))
                 {
-                    await File.WriteAllBytesAsync(
-                        previousVersionPath,
-                        previousConfiguration.Content!,
-                        cancellationToken);
+                    await File.WriteAllBytesAsync(previousVersionPath, previousConfiguration.Content!, cancellationToken);
                 }
             }
 
-            var temporaryVersionPath =
-                $"{versionedConfigurationPath}.{Guid.NewGuid():N}.tmp";
+            var temporaryVersionPath = $"{versionedConfigurationPath}.{Guid.NewGuid():N}.tmp";
+
             await File.WriteAllTextAsync(
                 temporaryVersionPath,
                 configuration,
                 new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
                 cancellationToken);
-            File.Move(
-                temporaryVersionPath,
-                versionedConfigurationPath,
-                overwrite: true);
-            ActivateConfiguration(
-                configurationDirectory,
-                configurationPath,
-                versionedConfigurationPath,
-                siteName);
+
+            File.Move(temporaryVersionPath, versionedConfigurationPath, overwrite: true);
+            ActivateConfiguration(configurationDirectory, configurationPath, versionedConfigurationPath, siteName);
 
             try
             {
@@ -205,15 +167,11 @@ public sealed class NginxSiteManager(
             }
             catch
             {
-                RestoreActiveConfiguration(
-                    configurationPath,
-                    previousConfiguration);
+                RestoreActiveConfiguration(configurationPath, previousConfiguration);
                 try
                 {
                     await commandRunner.RunAsync(["-t"], CancellationToken.None);
-                    await commandRunner.RunAsync(
-                        ["-s", "reload"],
-                        CancellationToken.None);
+                    await commandRunner.RunAsync(["-s", "reload"], CancellationToken.None);
                 }
                 catch (Exception rollbackException)
                 {
@@ -227,10 +185,7 @@ public sealed class NginxSiteManager(
                 throw;
             }
 
-            PruneVersionedConfigurations(
-                siteDirectory,
-                version,
-                previousVersion);
+            PruneVersionedConfigurations(siteDirectory, version, previousVersion);
         }
         finally
         {
@@ -238,27 +193,24 @@ public sealed class NginxSiteManager(
         }
     }
 
-    private static async Task<ActiveConfigurationSnapshot>
-        CaptureActiveConfigurationAsync(
-            string configurationPath,
-            CancellationToken cancellationToken)
+    private static async Task<ActiveConfigurationSnapshot> CaptureActiveConfigurationAsync(
+        string configurationPath,
+        CancellationToken cancellationToken)
     {
         if (!File.Exists(configurationPath))
         {
             return new ActiveConfigurationSnapshot(false, null, null);
         }
 
+        string? linkTarget = null;
         if ((File.GetAttributes(configurationPath) & FileAttributes.ReparsePoint) != 0)
         {
-            return new ActiveConfigurationSnapshot(
-                true,
-                new FileInfo(configurationPath).LinkTarget,
-                await File.ReadAllBytesAsync(configurationPath, cancellationToken));
+            linkTarget = new FileInfo(configurationPath).LinkTarget;
         }
 
         return new ActiveConfigurationSnapshot(
             true,
-            null,
+            linkTarget,
             await File.ReadAllBytesAsync(configurationPath, cancellationToken));
     }
 
@@ -268,9 +220,7 @@ public sealed class NginxSiteManager(
         string versionedConfigurationPath,
         string siteName)
     {
-        var temporaryPath = Path.Combine(
-            configurationDirectory,
-            $".{siteName}.{Guid.NewGuid():N}.tmp");
+        var temporaryPath = Path.Combine(configurationDirectory, $".{siteName}.{Guid.NewGuid():N}.tmp");
         if (OperatingSystem.IsWindows())
         {
             File.Copy(versionedConfigurationPath, temporaryPath);
@@ -279,9 +229,7 @@ public sealed class NginxSiteManager(
         {
             File.CreateSymbolicLink(
                 temporaryPath,
-                Path.GetRelativePath(
-                    configurationDirectory,
-                    versionedConfigurationPath));
+                Path.GetRelativePath(configurationDirectory, versionedConfigurationPath));
         }
 
         File.Move(temporaryPath, configurationPath, overwrite: true);
@@ -306,9 +254,7 @@ public sealed class NginxSiteManager(
         File.WriteAllBytes(configurationPath, snapshot.Content!);
     }
 
-    private static string? GetActiveVersion(
-        string configurationPath,
-        string siteDirectory)
+    private static string? GetActiveVersion(string configurationPath, string siteDirectory)
     {
         if (!File.Exists(configurationPath))
         {
@@ -321,14 +267,13 @@ public sealed class NginxSiteManager(
             return null;
         }
 
-        var rootVersion = Path.GetFileName(
-            Path.GetFullPath(match.Groups["path"].Value));
-        return rootVersion.All(char.IsAsciiDigit) &&
-               string.Equals(
-                   Path.GetDirectoryName(Path.GetFullPath(match.Groups["path"].Value)),
-                   Path.GetFullPath(siteDirectory),
-                   StringComparison.OrdinalIgnoreCase) &&
-               Directory.Exists(Path.Combine(siteDirectory, rootVersion))
+        var rootVersion = Path.GetFileName(Path.GetFullPath(match.Groups["path"].Value));
+        return rootVersion.All(char.IsAsciiDigit)
+            && string.Equals(
+                Path.GetDirectoryName(Path.GetFullPath(match.Groups["path"].Value)),
+                Path.GetFullPath(siteDirectory),
+                StringComparison.OrdinalIgnoreCase)
+            && Directory.Exists(Path.Combine(siteDirectory, rootVersion))
             ? rootVersion
             : null;
     }
@@ -338,14 +283,12 @@ public sealed class NginxSiteManager(
         string currentVersion,
         string? previousVersion)
     {
-        foreach (var configuration in Directory.EnumerateFiles(
-                     siteDirectory,
-                     "*.conf"))
+        foreach (var configuration in Directory.EnumerateFiles(siteDirectory, "*.conf"))
         {
             var version = Path.GetFileNameWithoutExtension(configuration);
-            if (!version.All(char.IsAsciiDigit) ||
-                version == currentVersion ||
-                version == previousVersion)
+            if (!version.All(char.IsAsciiDigit)
+                || version == currentVersion
+                || version == previousVersion)
             {
                 continue;
             }
@@ -358,28 +301,19 @@ public sealed class NginxSiteManager(
     {
         var fullPath = Path.GetFullPath(path);
         var version = Path.GetFileNameWithoutExtension(fullPath);
-        return string.Equals(
-                   Path.GetDirectoryName(fullPath),
-                   Path.Combine(_deploymentRoot, siteName),
-                   StringComparison.OrdinalIgnoreCase) &&
-               string.Equals(
-                   Path.GetExtension(fullPath),
-                   ".conf",
-                   StringComparison.OrdinalIgnoreCase) &&
-               version.Length > 0 &&
-               version.All(char.IsAsciiDigit);
+        return string.Equals(Path.GetDirectoryName(fullPath), Path.Combine(_deploymentRoot, siteName), StringComparison.OrdinalIgnoreCase)
+            && string.Equals(Path.GetExtension(fullPath), ".conf", StringComparison.OrdinalIgnoreCase)
+            && version.Length > 0
+            && version.All(char.IsAsciiDigit);
     }
 
     private bool IsVersionRoot(string path, string siteName)
     {
         var fullPath = Path.GetFullPath(path);
         var version = Path.GetFileName(fullPath);
-        return string.Equals(
-                   Path.GetDirectoryName(fullPath),
-                   Path.Combine(_deploymentRoot, siteName),
-                   StringComparison.OrdinalIgnoreCase) &&
-               version.Length > 0 &&
-               version.All(char.IsAsciiDigit);
+        return string.Equals(Path.GetDirectoryName(fullPath), Path.Combine(_deploymentRoot, siteName), StringComparison.OrdinalIgnoreCase)
+            && version.Length > 0
+            && version.All(char.IsAsciiDigit);
     }
 
     private sealed record ActiveConfigurationSnapshot(
@@ -387,10 +321,7 @@ public sealed class NginxSiteManager(
         string? LinkTarget,
         byte[]? Content);
 
-    public static string RenderConfiguration(
-        string siteName,
-        string siteRoot,
-        int listenPort)
+    public static string RenderConfiguration(string siteName, string siteRoot, int listenPort)
     {
         if (siteRoot.IndexOfAny(['"', '\r', '\n', '{', '}', ';']) >= 0)
         {

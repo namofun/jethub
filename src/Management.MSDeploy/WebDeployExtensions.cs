@@ -5,21 +5,21 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Xylab.Management.WebDeploy.Deployment;
 
 public static class WebDeployExtensions
 {
-    public static OptionsBuilder<WebDeployOptions> AddWebDeploy<TAuthenticationHandler>(this IServiceCollection services)
+    public static OptionsBuilder<WebDeployOptions> AddWebDeploy<TAuthenticationHandler, TDeploymentTarget>(
+        this IServiceCollection services)
         where TAuthenticationHandler : class, IWebDeployAuthenticationHandler
+        where TDeploymentTarget : class, IWebDeployDeploymentTarget
     {
-        services.AddSingleton<INginxCommandRunner, NginxCommandRunner>();
-        services.AddSingleton<NginxSiteManager>();
-        services.AddSingleton<StaticSiteReconciler>();
         services.AddSingleton<TraceSessionCoordinator>();
         services.AddSingleton<MSDeployEndpoint>();
         services.AddSingleton<IWebDeployAuthenticationHandler, TAuthenticationHandler>();
+        services.AddSingleton<IWebDeployDeploymentTarget, TDeploymentTarget>();
 
         TAuthenticationHandler.ConfigureServices(services);
+        TDeploymentTarget.ConfigureServices(services);
         return services.AddOptions<WebDeployOptions>()
             .ValidateDataAnnotations()
             .ValidateOnStart();
