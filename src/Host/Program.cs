@@ -1,4 +1,3 @@
-using System;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Reflection;
@@ -6,6 +5,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Xylab.Management.Automation.Cmdlets;
 using Xylab.Management.Services;
+using Xylab.Management.WebDeploy;
+using Xylab.Management.WebDeploy.Deployment;
 using Xylab.Remoting.PowerShellWebService;
 using Xylab.Workflows.LogicApps.Engine;
 
@@ -26,18 +27,21 @@ builder.Services.AddSignalR(o => o.EnableDetailedErrors = true);
 // add Virtual File System services
 builder.Services.AddSingleton<IFileSystemV2, FileSystemV2>();
 
-// add System Interop services
+// add System Information services
 builder.Services.AddSingleton<IHostSystem>(IHostSystem.CreateDefault());
 
-builder.Services.AddWorkflowEngine(options =>
-{
-    options.AzureStorageAccountConnectionString = "UseDevelopmentStorage=true";
-});
+// add Workflow Engine services
+builder.Services.AddWorkflowEngine()
+    .WithAzureStorageAccountConnectionString("UseDevelopmentStorage=true");
 
-builder.Services.AddPowerShellWebService(options =>
-{
-    options.AssembliesToImport.Add(typeof(SayHelloWorld).Assembly);
-});
+// add Remoting PowerShell services
+builder.Services.AddPowerShellWebService()
+    .WithWebSocketSupport()
+    .ImportAssembly(typeof(SayHelloWorld).Assembly);
+
+// add Web Deploy services
+builder.Services.AddWebDeploy()
+    .WithDeploymentTarget<NginxStaticSite>();
 
 var app = builder.Build();
 
@@ -46,6 +50,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<LogHub>("/api/log-stream");
+app.MapWebDeploy();
 app.MapPowerShellWebSocket("/powershell/stream");
 
 app.Run();

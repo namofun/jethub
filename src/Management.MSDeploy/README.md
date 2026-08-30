@@ -31,15 +31,12 @@ using Xylab.Management.WebDeploy.Deployment;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services
-    .AddWebDeploy<WebDeployBasicAuthHandler, NginxStaticSite>()
-    .Bind(builder.Configuration.GetSection("WebDeploy"));
-builder.Services
-    .AddOptions<WebDeployBasicAuthOptions>()
-    .Bind(builder.Configuration.GetSection("WebDeploy:Authentication"));
-builder.Services
-    .AddOptions<NginxStaticSiteOptions>()
-    .Bind(builder.Configuration.GetSection("WebDeploy:NginxStaticSite"));
+builder.Services.AddWebDeploy()
+    .WithBasicAuthentication(options => options.BindConfiguration("WebDeploy:Authentication"))
+    .WithDeploymentTarget<NginxStaticSite>()
+    .BindConfiguration("WebDeploy");
+builder.Services.AddOptions<NginxStaticSiteOptions>()
+    .BindConfiguration("WebDeploy:NginxStaticSite");
 
 var app = builder.Build();
 app.MapWebDeploy();
@@ -49,18 +46,21 @@ app.Run();
 The equivalent programmatic registration is:
 
 ```csharp
-builder.Services
-    .AddWebDeploy<WebDeployBasicAuthHandler, NginxStaticSite>()
+builder.Services.AddWebDeploy()
     .Configure(options =>
     {
         options.MaximumRequestBytes = 70 * 1024 * 1024;
-    });
-
-builder.Services.Configure<WebDeployBasicAuthOptions>(options =>
-{
-    options.Username = "publisher";
-    options.Password = builder.Configuration["WebDeployPassword"];
-});
+        options.MaximumConcurrentSyncRequests = 2;
+    })
+    .WithBasicAuthentication(options =>
+    {
+        options.Configure(authentication =>
+        {
+            authentication.Username = "publisher";
+            authentication.Password = builder.Configuration["WebDeployPassword"];
+        });
+    })
+    .WithDeploymentTarget<NginxStaticSite>();
 
 builder.Services.Configure<NginxStaticSiteOptions>(options =>
 {
@@ -71,6 +71,23 @@ builder.Services.Configure<NginxStaticSiteOptions>(options =>
 });
 ```
 
+`AddWebDeploy()` registers the protocol endpoint and returns an `OptionsBuilder<WebDeployOptions>`. Use `WithAuthenticationHandler<TAuthenticationHandler>()` to select a custom authentication handler, or `WithBasicAuthentication(...)` to configure the built-in Basic authentication handler. Use `WithDeploymentTarget<TDeploymentTarget>()` to select the deployment target. The selected handler and target can register their own services through their static `ConfigureServices` methods.
+
+`MapWebDeploy()` maps both compatible endpoint paths:
+
+```text
+/MsDeployAgentService
+/msdeploy.axd
+```
+
+An optional base URL maps both endpoints below a common prefix:
+
+```csharp
+app.MapWebDeploy("/management");
+```
+
+This maps `/management/MsDeployAgentService` and `/management/msdeploy.axd`.
+
 ## Deployment target abstraction
 
 `MSDeployEndpoint` depends on `IWebDeployDeploymentTarget`, not directly on Nginx or filesystem reconciliation. `NginxStaticSite` is the built-in implementation for immutable, versioned static sites behind Nginx.
@@ -78,7 +95,9 @@ builder.Services.Configure<NginxStaticSiteOptions>(options =>
 A different host can implement `IWebDeployDeploymentTarget` and select it at registration time:
 
 ```csharp
-builder.Services.AddWebDeploy<WebDeployBasicAuthHandler, CustomDeploymentTarget>();
+builder.Services.AddWebDeploy()
+    .WithBasicAuthentication(options => options.BindConfiguration("WebDeploy:Authentication"))
+    .WithDeploymentTarget<CustomDeploymentTarget>();
 ```
 
 The target receives the decoded destination, validated deployment payload, pass state, and `whatIf` state. Its result supplies the object and byte counts used by the MSDeploy change-summary response. Implementations can use the interface's static `ConfigureServices` method to register their own options and dependencies.

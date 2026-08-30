@@ -18,6 +18,7 @@ using Microsoft.Azure.Workflows.Templates.Schema;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.ResourceStack.Common.Collections;
 using Microsoft.WindowsAzure.ResourceStack.Common.Storage;
 using Newtonsoft.Json.Linq;
@@ -280,13 +281,18 @@ public static class WorkflowEngineExtensions
         FlowId = string.Empty,
     };
 
-    public static IServiceCollection AddWorkflowEngine(this IServiceCollection services, Action<WorkflowEngineOptions> configureOptions)
+    public static OptionsBuilder<WorkflowEngineOptions> AddWorkflowEngine(this IServiceCollection services)
     {
         services.AddHttpContextAccessor();
-
         services.TryAddSingleton<WorkflowEngineProvider>();
         services.TryAddSingleton<IHostedService, WorkflowEngineHostedService>();
-        services.Configure(configureOptions);
-        return services;
+        return services.AddOptions<WorkflowEngineOptions>().ValidateDataAnnotations().ValidateOnStart();
+    }
+
+    public static OptionsBuilder<WorkflowEngineOptions> WithAzureStorageAccountConnectionString(
+        this OptionsBuilder<WorkflowEngineOptions> builder,
+        string azureStorageAccountConnectionString)
+    {
+        return builder.Configure(options => options.AzureStorageAccountConnectionString = azureStorageAccountConnectionString);
     }
 }

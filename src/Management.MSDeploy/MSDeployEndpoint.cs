@@ -8,7 +8,6 @@ using System.Text;
 
 public sealed class MSDeployEndpoint(
     IOptions<WebDeployOptions> options,
-    IWebDeployAuthenticationHandler authenticationHandler,
     IWebDeployDeploymentTarget deploymentTarget,
     TraceSessionCoordinator traceSessions,
     ILogger<MSDeployEndpoint> logger)
@@ -20,9 +19,9 @@ public sealed class MSDeployEndpoint(
 
     public async Task HandleAsync(HttpContext context, CancellationToken cancellationToken)
     {
-        if (!await authenticationHandler.AuthenticateAsync(context.Request, cancellationToken))
+        if (!await _options.AuthenticateAsync(context.Request, cancellationToken))
         {
-            await authenticationHandler.ChallengeAsync(context.Response, cancellationToken);
+            await _options.ChallengeAsync(context.Response, cancellationToken);
             return;
         }
 

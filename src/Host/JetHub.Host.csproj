@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Management.Interop\Management.Interop.csproj" />
+    <ProjectReference Include="..\Management.MSDeploy\Management.WebDeploy.csproj" />
     <ProjectReference Include="..\Management.ProjectKudu\Management.Kudu.csproj" />
     <ProjectReference Include="..\PowerShell.Cmdlets\PowerShell.Cmdlets.csproj" />
     <ProjectReference Include="..\PowerShell.WebService\Remoting.PowerShellWebService.csproj" />
