@@ -26,38 +26,6 @@ public static class WebDeployExtensions
         return builder;
     }
 
-    public static OptionsBuilder<WebDeployOptions> WithAuthenticationHandler<TAuthenticationHandler>(
-        this OptionsBuilder<WebDeployOptions> builder)
-        where TAuthenticationHandler : class, IWebDeployAuthenticationHandler
-    {
-        builder.Services.AddSingleton<IWebDeployAuthenticationHandler, TAuthenticationHandler>();
-        TAuthenticationHandler.ConfigureServices(builder.Services);
-
-        return builder.Configure(options =>
-        {
-            options.AuthenticateAsync = (request, cancellationToken) =>
-            {
-                var handler = request.HttpContext.RequestServices.GetRequiredService<IWebDeployAuthenticationHandler>();
-                return handler.AuthenticateAsync(request, cancellationToken);
-            };
-
-            options.ChallengeAsync = (response, cancellationToken) =>
-            {
-                var handler = response.HttpContext.RequestServices.GetRequiredService<IWebDeployAuthenticationHandler>();
-                return handler.ChallengeAsync(response, cancellationToken);
-            };
-        });
-    }
-
-    public static OptionsBuilder<WebDeployOptions> WithBasicAuthentication(
-        this OptionsBuilder<WebDeployOptions> builder,
-        Action<OptionsBuilder<Authentication.WebDeployBasicAuthOptions>> configureBasicAuthOptions)
-    {
-        builder.WithAuthenticationHandler<Authentication.WebDeployBasicAuthHandler>();
-        configureBasicAuthOptions.Invoke(builder.Services.AddOptions<Authentication.WebDeployBasicAuthOptions>());
-        return builder;
-    }
-
     public static RouteHandlerBuilder MapWebDeploy(this IEndpointRouteBuilder builder, string baseUrl = "")
     {
         baseUrl = ('/' + baseUrl.TrimStart('/')).TrimEnd('/');
@@ -78,16 +46,6 @@ public static class WebDeployExtensions
             if (serviceProvider.GetService<IWebDeployDeploymentTarget>() == null)
             {
                 return ValidateOptionsResult.Fail("No IWebDeployDeploymentTarget implementation is registered.");
-            }
-
-            if (options.AuthenticateAsync == null)
-            {
-                return ValidateOptionsResult.Fail("AuthenticateAsync must be provided.");
-            }
-
-            if (options.ChallengeAsync == null)
-            {
-                return ValidateOptionsResult.Fail("ChallengeAsync must be provided.");
             }
 
             return ValidateOptionsResult.Success;

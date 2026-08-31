@@ -1,10 +1,10 @@
 ﻿namespace Xylab.Management.WebDeploy;
 
+using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Text;
 
 public sealed class MSDeployEndpoint(
     IOptions<WebDeployOptions> options,
@@ -19,12 +19,6 @@ public sealed class MSDeployEndpoint(
 
     public async Task HandleAsync(HttpContext context, CancellationToken cancellationToken)
     {
-        if (!await _options.AuthenticateAsync(context.Request, cancellationToken))
-        {
-            await _options.ChallengeAsync(context.Response, cancellationToken);
-            return;
-        }
-
         if (HttpMethods.IsHead(context.Request.Method))
         {
             MSDeployProtocol.ApplyCapabilityHeaders(context.Response.Headers);

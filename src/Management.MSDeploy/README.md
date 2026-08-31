@@ -15,7 +15,7 @@ The implementation includes:
 - Safe decoding of gzip/Base64 NRBF option headers with `System.Formats.Nrbf`; `BinaryFormatter` is not used.
 - Compatible change-summary response headers.
 - Static `contentPath` synchronization.
-- Basic authentication, request-size limits, concurrency limits, bounded parsing, path validation, and symbolic-link rejection.
+- Request-size limits, concurrency limits, bounded parsing, path validation, and symbolic-link rejection.
 - Atomic content and Nginx configuration activation with rollback.
 
 The supported surface is intentionally narrow. Package, manifest, IIS configuration, database, ACL, certificate, and other MSDeploy providers are not implemented.
@@ -26,20 +26,18 @@ Register the services from configuration and map both endpoints:
 
 ```csharp
 using Xylab.Management.WebDeploy;
-using Xylab.Management.WebDeploy.Authentication;
 using Xylab.Management.WebDeploy.Deployment;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddWebDeploy()
-    .WithBasicAuthentication(options => options.BindConfiguration("WebDeploy:Authentication"))
     .WithDeploymentTarget<NginxStaticSite>()
     .BindConfiguration("WebDeploy");
 builder.Services.AddOptions<NginxStaticSiteOptions>()
     .BindConfiguration("WebDeploy:NginxStaticSite");
 
 var app = builder.Build();
-app.MapWebDeploy();
+app.MapWebDeploy().RequireAuthorization();
 app.Run();
 ```
 
@@ -52,14 +50,6 @@ builder.Services.AddWebDeploy()
         options.MaximumRequestBytes = 70 * 1024 * 1024;
         options.MaximumConcurrentSyncRequests = 2;
     })
-    .WithBasicAuthentication(options =>
-    {
-        options.Configure(authentication =>
-        {
-            authentication.Username = "publisher";
-            authentication.Password = builder.Configuration["WebDeployPassword"];
-        });
-    })
     .WithDeploymentTarget<NginxStaticSite>();
 
 builder.Services.Configure<NginxStaticSiteOptions>(options =>
@@ -71,7 +61,7 @@ builder.Services.Configure<NginxStaticSiteOptions>(options =>
 });
 ```
 
-`AddWebDeploy()` registers the protocol endpoint and returns an `OptionsBuilder<WebDeployOptions>`. Use `WithAuthenticationHandler<TAuthenticationHandler>()` to select a custom authentication handler, or `WithBasicAuthentication(...)` to configure the built-in Basic authentication handler. Use `WithDeploymentTarget<TDeploymentTarget>()` to select the deployment target. The selected handler and target can register their own services through their static `ConfigureServices` methods.
+`AddWebDeploy()` registers the protocol endpoint and returns an `OptionsBuilder<WebDeployOptions>`. Use `WithDeploymentTarget<TDeploymentTarget>()` to select the deployment target. The selected handler and target can register their own services through their static `ConfigureServices` methods.
 
 `MapWebDeploy()` maps both compatible endpoint paths:
 
@@ -96,13 +86,10 @@ A different host can implement `IWebDeployDeploymentTarget` and select it at reg
 
 ```csharp
 builder.Services.AddWebDeploy()
-    .WithBasicAuthentication(options => options.BindConfiguration("WebDeploy:Authentication"))
     .WithDeploymentTarget<CustomDeploymentTarget>();
 ```
 
 The target receives the decoded destination, validated deployment payload, pass state, and `whatIf` state. Its result supplies the object and byte counts used by the MSDeploy change-summary response. Implementations can use the interface's static `ConfigureServices` method to register their own options and dependencies.
-
-Do not expose Basic authentication over unencrypted HTTP. Restrict the service to a trusted network or terminate TLS in front of it.
 
 ## Linux deployment layout
 
