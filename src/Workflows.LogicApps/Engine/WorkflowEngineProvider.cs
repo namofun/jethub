@@ -36,6 +36,8 @@ public class WorkflowEngineProvider(
 
     private readonly TaskCompletionSource<WorkflowEngine> engineLazy = new();
 
+    public bool IsReady => engineLazy.Task.IsCompleted;
+
     public Task<WorkflowEngine> CreateEngineAsync()
     {
         return CreateEngineAsync(configurationSource);
@@ -111,7 +113,14 @@ public class WorkflowEngineProvider(
 
     internal void SetEngine(WorkflowEngine engine)
     {
+        logger.LogInformation("Workflow engine initialized successfully.");
         engineLazy.SetResult(engine);
+    }
+
+    internal void SetError(Exception exception)
+    {
+        logger.LogError(exception, "Workflow engine failed to initialize.");
+        engineLazy.SetException(exception);
     }
 
     internal WorkflowEngine? GetInstanceOrCancel()

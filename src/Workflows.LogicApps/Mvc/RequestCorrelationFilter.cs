@@ -19,7 +19,7 @@ public sealed class RequestCorrelationFilterAttribute : Attribute, IAsyncActionF
         {
             RequestCorrelationContext.Current.SetAuthenticationIdentity(new RequestIdentity()
             {
-                Claims = context.HttpContext.User.Claims.ToDictionary(k => k.Type, v => v.Value),
+                Claims = context.HttpContext.User.Claims.GroupBy(k => k.Type).ToDictionary(k => k.Key, v => string.Join(",", v.Select(c => c.Value))),
                 IsAuthenticated = context.HttpContext.User.Identity?.IsAuthenticated ?? false,
                 AuthorizedBy = RequestAuthorizationSource.Management,
             });

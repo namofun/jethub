@@ -285,7 +285,7 @@ public static class WorkflowEngineExtensions
     {
         services.AddHttpContextAccessor();
         services.TryAddSingleton<WorkflowEngineProvider>();
-        services.TryAddSingleton<IHostedService, WorkflowEngineHostedService>();
+        services.AddHostedService<WorkflowEngineHostedService>();
         return services.AddOptions<WorkflowEngineOptions>().ValidateDataAnnotations().ValidateOnStart();
     }
 

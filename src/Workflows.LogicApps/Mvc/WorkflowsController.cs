@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Azure.Workflows.Common.ErrorResponses;
@@ -198,7 +199,20 @@ public abstract class WorkflowsControllerBase(WorkflowEngineProvider workflowEng
 
     public virtual async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
-        engine = await workflowEngineProvider.GetEngineAsync();
-        await next();
+        if (workflowEngineProvider.IsReady)
+        {
+            engine = await workflowEngineProvider.GetEngineAsync();
+            await next();
+        }
+        else
+        {
+            context.Result = new NewtonsoftJsonResult(
+                new ErrorResponseMessage(
+                    ErrorResponseCode.ServerTimeout,
+                    "Workflow engine initialization is in progress."))
+            {
+                StatusCode = StatusCodes.Status503ServiceUnavailable,
+            };
+        }
     }
 }

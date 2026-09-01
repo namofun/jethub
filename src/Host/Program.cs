@@ -1,8 +1,11 @@
 using System.IO.Abstractions;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Identity.Web;
 using Xylab.Management.Automation.Cmdlets;
 using Xylab.Management.Services;
 using Xylab.Management.WebDeploy;
@@ -12,7 +15,16 @@ using Xylab.Workflows.LogicApps.Engine;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddAuthentication()
+    .AddMicrosoftIdentityWebApi(builder.Configuration);
+
+builder.Services.AddAuthorizationBuilder()
+    .AddFallbackPolicy("DefaultRequireAuth", new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options => options.JsonSerializerOptions.WriteIndented = true);
+
+builder.Services.ConfigureHttpJsonOptions(json => json.SerializerOptions.WriteIndented = true);
 
 builder.Services.Configure<GlobalOptions>(options =>
 {
@@ -32,7 +44,7 @@ builder.Services.AddSingleton<IHostSystem>(IHostSystem.CreateDefault());
 
 // add Workflow Engine services
 builder.Services.AddWorkflowEngine()
-    .WithAzureStorageAccountConnectionString("UseDevelopmentStorage=true");
+    .WithAzureStorageAccountConnectionString(builder.Configuration.GetValue<string>("WorkflowEngineStorage"));
 
 // add Remoting PowerShell services
 builder.Services.AddPowerShellWebService()
@@ -46,6 +58,7 @@ builder.Services.AddWebDeploy()
 var app = builder.Build();
 
 app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
