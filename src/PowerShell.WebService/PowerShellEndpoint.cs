@@ -26,20 +26,24 @@ public class PowerShellEndpoint(IPowerShellInvoker invoker)
 
     public async Task<IResult> ExecuteCmdlet(string cmdletName, HttpRequest request)
     {
-        if (request.ContentType == null || !request.ContentType.StartsWith("application/xml"))
-        {
-            return Results.BadRequest(new { error = "Invalid request body content type." });
-        }
-
-        string? serializedBoundParameters = null;
+        string serializedBoundParameters;
         using (StreamReader sr = new(request.Body))
         {
             serializedBoundParameters = await sr.ReadToEndAsync();
         }
 
-        if (!invoker.TryParseParameters(serializedBoundParameters, out Hashtable? param))
+        Hashtable? param = null;
+        if (serializedBoundParameters.Length > 0)
         {
-            return Results.BadRequest(new { error = "Invalid $PSBoundParameters." });
+            if (request.ContentType == null || !request.ContentType.StartsWith("application/xml"))
+            {
+                return Results.BadRequest(new { error = "Invalid request body content type." });
+            }
+
+            if (!invoker.TryParseParameters(serializedBoundParameters, out param))
+            {
+                return Results.BadRequest(new { error = "Invalid $PSBoundParameters." });
+            }
         }
 
         using IPowerShellStream pwsh = invoker.GetCmdletStream(cmdletName, param);
