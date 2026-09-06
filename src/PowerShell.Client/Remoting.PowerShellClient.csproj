@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -7,13 +7,37 @@
     <RootNamespace>Xylab.Remoting.PowerShellClient</RootNamespace>
     <PackageId>Xylab.Remoting.PowerShellClient</PackageId>
     <Description>PowerShell client for remote management</Description>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <NoWarn>$(NoWarn);NU5100</NoWarn>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);IncludePowerShellModuleFiles</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
   <Import Project="..\..\build\NugetPackage.props" />
 
+  <PropertyGroup>
+    <PackageTags>$(PackageTags) PowerShell PSModule</PackageTags>
+    <IncludeSymbols>false</IncludeSymbols>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
-    <PackageReference Include="System.Management.Automation" />
+    <PackageReference Include="System.Management.Automation" ExcludeAssets="runtime" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Xylab.Remoting.PowerShellClient.psd1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <Target Name="IncludePowerShellModuleFiles">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(OutputPath)*" Exclude="$(OutputPath)*.pdb">
+        <PackagePath />
+      </TfmSpecificPackageFile>
+    </ItemGroup>
+  </Target>
 
 </Project>

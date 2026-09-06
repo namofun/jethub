@@ -2,11 +2,19 @@
 
 using System.Collections.Generic;
 using System.Management.Automation;
+using System.Security;
+using System.Security.Cryptography.X509Certificates;
 
 public abstract class RemoteActionBase : Cmdlet
 {
     [Parameter(Mandatory = true, Position = 0)]
     public string RemoteEndpoint { get; set; } = string.Empty;
+
+    [Parameter]
+    public SecureString? AccessToken { get; set; }
+
+    [Parameter]
+    public X509Certificate2? ClientCertificate { get; set; }
 
     protected abstract IAsyncEnumerable<KeyValuePair<string, string>> StartExecuteAsync(PowerShellRemoteClient client);
 
@@ -16,7 +24,8 @@ public abstract class RemoteActionBase : Cmdlet
         try
         {
             client = new(RemoteEndpoint);
-            client.Connect();
+            client.Connect(AccessToken, ClientCertificate);
+
             this.WriteCommandDetail("Connected to remote endpoint.");
 
             var stream = this.StartExecuteAsync(client);

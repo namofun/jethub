@@ -4,8 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Management.Automation;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+using System.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http.Connections.Client;
 using Microsoft.AspNetCore.SignalR.Client;
 
 public sealed class PowerShellRemoteClient : IDisposable
@@ -18,10 +23,36 @@ public sealed class PowerShellRemoteClient : IDisposable
         this.remoteEndpoint = remoteEndpoint;
     }
 
-    public void Connect()
+    public void Connect(SecureString? accessToken, X509Certificate2? clientCertificate)
     {
-        this.connection = new HubConnectionBuilder().WithUrl(remoteEndpoint).Build();
+        Action<HttpConnectionOptions> authOptions = options =>
+        {
+            if (accessToken != null)
+            {
+                options.AccessTokenProvider = () => Task.FromResult<string?>(Unwrap(accessToken));
+            }
+            else if (clientCertificate != null)
+            {
+                options.ClientCertificates = [clientCertificate];
+            }
+        };
+
+        this.connection = new HubConnectionBuilder().WithUrl(remoteEndpoint, authOptions).Build();
         this.connection.StartAsync().Wait();
+
+        static string Unwrap(SecureString value)
+        {
+            var pointer = Marshal.SecureStringToGlobalAllocUnicode(value);
+            try
+            {
+                return Marshal.PtrToStringUni(pointer)
+                    ?? throw new InvalidOperationException("Failed to read the access token.");
+            }
+            finally
+            {
+                Marshal.ZeroFreeGlobalAllocUnicode(pointer);
+            }
+        }
     }
 
     public IAsyncEnumerable<KeyValuePair<string, string>> GetStream(string method, string arg1)
