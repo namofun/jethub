@@ -7,12 +7,13 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-public static class PswsAppBuilderExtensions
+public static class PowerShellWebApplicationBuilderExtensions
 {
     public static OptionsBuilder<PowerShellOptions> AddPowerShellWebService(this IServiceCollection services)
     {
         services.AddSingleton<PowerShellAuthorizationManager>();
         services.AddSingleton<PowerShellRunspaceFactory>();
+        services.AddSingleton<IPowerShellInvoker, PowerShellInvoker>();
 
         return services.AddOptions<PowerShellOptions>();
     }
@@ -35,8 +36,18 @@ public static class PswsAppBuilderExtensions
         return builder;
     }
 
-    public static HubEndpointConventionBuilder MapPowerShellWebSocket(this IEndpointRouteBuilder builder, string pattern, Action<HttpConnectionDispatcherOptions>? configureOptions = null)
+    public static RouteHandlerBuilder MapPowerShellHttpRequest(this IEndpointRouteBuilder builder, string routePatternPrefix)
     {
-        return builder.MapHub<PowerShellHub>(pattern, configureOptions);
+        IPowerShellInvoker invoker = builder.ServiceProvider.GetRequiredService<IPowerShellInvoker>();
+        PowerShellEndpoint endpoint = new(invoker);
+        RouteGroupBuilder group = builder.MapGroup(routePatternPrefix);
+        var rb1 = group.MapPost("/cmdlet/{cmdletName}", endpoint.ExecuteCmdlet);
+        var rb2 = group.MapPost("/script", endpoint.ExecuteScript);
+        return new RouteHandlerBuilder([rb1, rb2]);
+    }
+
+    public static HubEndpointConventionBuilder MapPowerShellWebSocket(this IEndpointRouteBuilder builder, string routePattern, Action<HttpConnectionDispatcherOptions>? configureOptions = null)
+    {
+        return builder.MapHub<PowerShellHub>(routePattern, configureOptions);
     }
 }

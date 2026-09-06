@@ -64,6 +64,7 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<LogHub>("/api/log-stream");
 app.MapWebDeploy();
+app.MapPowerShellHttpRequest("/powershell");
 app.MapPowerShellWebSocket("/powershell/stream");
 
 app.Run();
