@@ -197,6 +197,7 @@ public abstract class WorkflowsControllerBase(WorkflowEngineProvider workflowEng
         return new NewtonsoftJsonResult(new { value = resources.ToList() });
     }
 
+    [NonAction]
     public virtual async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
         if (workflowEngineProvider.IsReady)

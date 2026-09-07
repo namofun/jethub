@@ -27,10 +27,10 @@ public static class WebDeployExtensions
 
     public static RouteHandlerBuilder MapWebDeploy(this IEndpointRouteBuilder builder, string baseUrl = "")
     {
-        baseUrl = ('/' + baseUrl.TrimStart('/')).TrimEnd('/');
+        RouteGroupBuilder group = builder.MapGroup(baseUrl);
         MSDeployEndpoint endpoint = builder.ServiceProvider.GetRequiredService<MSDeployEndpoint>();
-        var rb1 = builder.MapMethods(baseUrl + "/MsDeployAgentService", ["HEAD", "POST"], endpoint.HandleAsync);
-        var rb2 = builder.MapMethods(baseUrl + "/msdeploy.axd", ["HEAD", "POST"], endpoint.HandleAsync);
+        var rb1 = group.MapMethods("/MsDeployAgentService", ["HEAD", "POST"], endpoint.HandleAsync);
+        var rb2 = group.MapMethods("/msdeploy.axd", ["HEAD", "POST"], endpoint.HandleAsync);
         return new RouteHandlerBuilder([rb1, rb2]);
     }
 
