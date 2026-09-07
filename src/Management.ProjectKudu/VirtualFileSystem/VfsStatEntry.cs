@@ -1,8 +1,4 @@
-﻿/// <copyright>
-/// 
-/// </copyright>
-/// 
-/// <summary>
+﻿/// <summary>
 ///   Copied from https://github.com/Azure-App-Service/KuduLite/blob/dev/Kudu.Contracts/Editor/VfsStatEntry.cs
 /// </summary>
 

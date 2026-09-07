@@ -11,7 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Headers;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
@@ -20,29 +20,41 @@ namespace Xylab.Management.VirtualFileSystem;
 /// <summary>
 /// Provides common functionality for Virtual File System controllers.
 /// </summary>
-public abstract class VfsControllerBase : ControllerBase
+public abstract class VfsEndpointBase
 {
     public const char UriSegmentSeparator = '/';
     protected const int BufferSize = 32 * 1024;
 
-    protected readonly IFileSystem FileSystem;
-    protected readonly ILogger Logger;
-    protected readonly string RootPath;
-    protected readonly MediaTypeMap MediaTypeMap;
+    protected IFileSystem FileSystem { get; }
 
-    protected VfsControllerBase(ILogger logger, string rootPath, IFileSystemV2 fileSystem)
+    protected ILogger Logger { get; }
+
+    protected string RootPath { get; }
+
+    protected MediaTypeMap MediaTypeMap { get; }
+
+    protected IHttpContextAccessor HttpContextAccessor { get; }
+
+    protected HttpRequest Request => HttpContext.Request;
+
+    protected HttpResponse Response => HttpContext.Response;
+
+    protected HttpContext HttpContext => HttpContextAccessor.HttpContext;
+
+    protected RouteData RouteData => HttpContext.GetRouteData();
+
+    protected VfsEndpointBase(ILogger logger, string rootPath, IFileSystemV2 fileSystem, IHttpContextAccessor httpContextAccessor)
     {
         ArgumentNullException.ThrowIfNull(fileSystem, nameof(fileSystem));
 
         Logger = logger;
         RootPath = Path.GetFullPath(rootPath.TrimEnd(Path.DirectorySeparatorChar));
+        HttpContextAccessor = httpContextAccessor;
         MediaTypeMap = MediaTypeMap.Default;
         FileSystem = fileSystem;
     }
 
-    [AcceptVerbs("GET", "HEAD")]
-    [Route("{**path}")]
-    public virtual Task<IActionResult> GetItem()
+    public virtual Task<IResult> GetItem()
     {
         string localFilePath = GetLocalFilePath();
         IDirectoryInfo info = FileSystem.DirectoryInfo.FromDirectoryName(localFilePath);
@@ -82,8 +94,7 @@ public abstract class VfsControllerBase : ControllerBase
         }
     }
 
-    [HttpPut("{**path}")]
-    public virtual Task<IActionResult> PutItem()
+    public virtual Task<IResult> PutItem()
     {
         string localFilePath = GetLocalFilePath();
         IDirectoryInfo info = FileSystem.DirectoryInfo.FromDirectoryName(localFilePath);
@@ -105,8 +116,7 @@ public abstract class VfsControllerBase : ControllerBase
         }
     }
 
-    [HttpDelete("{**path}")]
-    public virtual Task<IActionResult> DeleteItem(bool recursive = false)
+    public virtual Task<IResult> DeleteItem(bool recursive = false)
     {
         string localFilePath = GetLocalFilePath();
         IDirectoryInfo dirInfo = FileSystem.DirectoryInfo.FromDirectoryName(localFilePath);
@@ -145,7 +155,7 @@ public abstract class VfsControllerBase : ControllerBase
         }
     }
 
-    protected virtual Task<IActionResult> CreateDirectoryGetResponse(IDirectoryInfo info, string localFilePath)
+    protected virtual Task<IResult> CreateDirectoryGetResponse(IDirectoryInfo info, string localFilePath)
     {
         Contract.Assert(info != null);
         try
@@ -160,16 +170,16 @@ public abstract class VfsControllerBase : ControllerBase
         }
     }
 
-    protected abstract Task<IActionResult> CreateItemGetResponse(IFileSystemInfo info, string localFilePath);
+    protected abstract Task<IResult> CreateItemGetResponse(IFileSystemInfo info, string localFilePath);
 
-    protected virtual Task<IActionResult> CreateDirectoryPutResponse(IDirectoryInfo info, string localFilePath)
+    protected virtual Task<IResult> CreateDirectoryPutResponse(IDirectoryInfo info, string localFilePath)
     {
         return Conflict("The resource represents a directory which can not be updated.");
     }
 
-    protected abstract Task<IActionResult> CreateItemPutResponse(IFileSystemInfo info, string localFilePath, bool itemExists);
+    protected abstract Task<IResult> CreateItemPutResponse(IFileSystemInfo info, string localFilePath, bool itemExists);
 
-    protected virtual Task<IActionResult> CreateFileDeleteResponse(IFileInfo info)
+    protected virtual Task<IResult> CreateFileDeleteResponse(IFileInfo info)
     {
         // Generate file response
         try
@@ -305,27 +315,19 @@ public abstract class VfsControllerBase : ControllerBase
         }
     }
 
-    protected new Task<IActionResult> Ok()
-        => Task.FromResult<IActionResult>(base.Ok());
+    protected Task<IResult> Ok() => Task.FromResult(Results.Ok());
 
-    protected new Task<IActionResult> Ok(object result)
-        => Task.FromResult<IActionResult>(base.Ok(result));
+    protected Task<IResult> Ok(object result) => Task.FromResult(Results.Ok(result));
 
-    protected new Task<IActionResult> Created()
-        => Task.FromResult<IActionResult>(base.Created());
+    protected Task<IResult> Created() => Task.FromResult(Results.Created());
 
-    protected Task<IActionResult> InternalServerError(object value = null)
-        => Task.FromResult<IActionResult>(StatusCode(StatusCodes.Status500InternalServerError, value));
+    protected Task<IResult> InternalServerError(object value = null) => Task.FromResult(Results.InternalServerError(value));
 
-    protected Task<IActionResult> NotFound(string reason)
-        => Task.FromResult<IActionResult>(StatusCode(StatusCodes.Status404NotFound, reason));
+    protected Task<IResult> NotFound(string reason) => Task.FromResult(Results.NotFound(reason));
 
-    protected Task<IActionResult> Conflict(string reason)
-        => Task.FromResult<IActionResult>(StatusCode(StatusCodes.Status409Conflict, reason));
+    protected Task<IResult> Conflict(string reason) => Task.FromResult(Results.Conflict(reason));
 
-    protected Task<IActionResult> PreconditionFailed(string reason)
-        => Task.FromResult<IActionResult>(StatusCode(StatusCodes.Status412PreconditionFailed, reason));
+    protected Task<IResult> PreconditionFailed(string reason) => Task.FromResult(Results.Text(reason, statusCode: StatusCodes.Status412PreconditionFailed));
 
-    protected Task<IActionResult> RedirectPreserveMethod(Uri uri)
-        => Task.FromResult<IActionResult>(RedirectPreserveMethod(uri.AbsolutePath));
+    protected Task<IResult> RedirectPreserveMethod(Uri uri) => Task.FromResult(Results.Redirect(uri.AbsolutePath, preserveMethod: true));
 }

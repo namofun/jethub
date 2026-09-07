@@ -1,4 +1,3 @@
-using System.IO.Abstractions;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
@@ -8,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Web;
 using Xylab.Management.Automation.Cmdlets;
 using Xylab.Management.Services;
+using Xylab.Management.VirtualFileSystem;
 using Xylab.Management.WebDeploy;
 using Xylab.Management.WebDeploy.Deployment;
 using Xylab.Remoting.PowerShellWebService;
@@ -37,7 +37,7 @@ builder.Services.Configure<GlobalOptions>(options =>
 builder.Services.AddSignalR(o => o.EnableDetailedErrors = true);
 
 // add Virtual File System services
-builder.Services.AddSingleton<IFileSystemV2, FileSystemV2>();
+builder.Services.AddVirtualFileSystem();
 
 // add System Information services
 builder.Services.AddSingleton<IHostSystem>(IHostSystem.CreateDefault());
@@ -63,6 +63,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapWorkflows("/workflows");
+app.MapVirtualFileSystem("/files", "/");
 app.MapHub<LogHub>("/api/log-stream");
 app.MapWebDeploy();
 app.MapPowerShellHttpRequest("/powershell");

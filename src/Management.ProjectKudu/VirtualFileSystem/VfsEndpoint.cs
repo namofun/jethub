@@ -12,21 +12,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Headers;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
 /// <summary>
 /// A Virtual File System controller which exposes GET, PUT, and DELETE for the entire Kudu file system.
 /// </summary>
-public abstract class VfsControllerImpl : VfsControllerBase
+public class VfsEndpoint(ILogger<VfsEndpoint> logger, string rootPath, IFileSystemV2 fileSystem, IHttpContextAccessor httpContextAccessor)
+    : VfsEndpointBase(logger, rootPath, fileSystem, httpContextAccessor)
 {
-    protected VfsControllerImpl(ILogger logger, string rootPath, IFileSystemV2 fileSystem)
-        : base(logger, rootPath, fileSystem)
-    {
-    }
-
-    protected override Task<IActionResult> CreateDirectoryPutResponse(IDirectoryInfo info, string localFilePath)
+    protected override Task<IResult> CreateDirectoryPutResponse(IDirectoryInfo info, string localFilePath)
     {
         if (info != null && info.Exists)
         {
@@ -48,16 +43,17 @@ public abstract class VfsControllerImpl : VfsControllerBase
         return Created();
     }
 
-    protected override Task<IActionResult> CreateItemGetResponse(IFileSystemInfo info, string localFilePath)
+    protected override Task<IResult> CreateItemGetResponse(IFileSystemInfo info, string localFilePath)
     {
-        return Task.FromResult<IActionResult>(File(
-            GetFileReadStream(localFilePath),
-            MediaTypeMap.GetMediaType(info.Extension).ToString(),
-            info.LastWriteTime,
-            CreateEntityTag(info)));
+        return Task.FromResult(
+            Results.File(
+                GetFileReadStream(localFilePath),
+                contentType: MediaTypeMap.GetMediaType(info.Extension).ToString(),
+                lastModified: info.LastWriteTime,
+                entityTag: CreateEntityTag(info)));
     }
 
-    protected override async Task<IActionResult> CreateItemPutResponse(IFileSystemInfo info, string localFilePath, bool itemExists)
+    protected override async Task<IResult> CreateItemPutResponse(IFileSystemInfo info, string localFilePath, bool itemExists)
     {
         // Check that we have a matching conditional If-Match request for existing resources
         if (itemExists)
@@ -71,7 +67,7 @@ public abstract class VfsControllerImpl : VfsControllerBase
             // Existing resources require an etag to be updated.
             if (requestHeaders.IfMatch == null)
             {
-                return StatusCode(412, "Updating an existing resource requires an If-Match header carrying a single, strong ETag.");
+                return await PreconditionFailed("Updating an existing resource requires an If-Match header carrying a single, strong ETag.");
             }
 
             bool isMatch = false;
@@ -87,7 +83,7 @@ public abstract class VfsControllerImpl : VfsControllerBase
             if (!isMatch)
             {
                 responseHeaders.ETag = currentEtag;
-                return StatusCode(412, "ETag does not represent the latest state of the resource.");
+                return await PreconditionFailed("ETag does not represent the latest state of the resource.");
             }
         }
 
@@ -103,7 +99,7 @@ public abstract class VfsControllerImpl : VfsControllerBase
                 catch (Exception ex)
                 {
                     Logger.LogError(ex, "Error during copying file content: {Message}", ex.Message);
-                    return StatusCode(409, $"Could not write to local resource '{localFilePath}' due to error '{ex.Message}'.");
+                    return await Conflict($"Could not write to local resource '{localFilePath}' due to error '{ex.Message}'.");
                 }
             }
 
@@ -114,16 +110,16 @@ public abstract class VfsControllerImpl : VfsControllerBase
             headers.LastModified = info.LastWriteTimeUtc;
 
             // Return either 204 No Content or 201 Created response
-            return StatusCode(itemExists ? 204 : 201);
+            return Results.StatusCode(itemExists ? 204 : 201);
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error during returning result: {Message}", ex.Message);
-            return StatusCode(409, $"Could not write to local resource '{localFilePath}' due to error '{ex.Message}'.");
+            return await Conflict($"Could not write to local resource '{localFilePath}' due to error '{ex.Message}'.");
         }
     }
 
-    protected override Task<IActionResult> CreateFileDeleteResponse(IFileInfo info)
+    protected override Task<IResult> CreateFileDeleteResponse(IFileInfo info)
     {
         // Existing resources require an etag to be updated.
         var requestHeaders = Request.GetTypedHeaders();
