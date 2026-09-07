@@ -1,10 +1,9 @@
 ﻿namespace Xylab.Workflows.LogicApps.Engine;
 
-using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Workflows.Common.Constants;
 using Microsoft.Azure.Workflows.Common.Entities;
 using Microsoft.Azure.Workflows.Data;
@@ -15,14 +14,10 @@ using Microsoft.Azure.Workflows.Data.Engines;
 using Microsoft.Azure.Workflows.Data.Entities;
 using Microsoft.Azure.Workflows.Templates.Extensions;
 using Microsoft.Azure.Workflows.Templates.Schema;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.ResourceStack.Common.Collections;
 using Microsoft.WindowsAzure.ResourceStack.Common.Storage;
 using Newtonsoft.Json.Linq;
-using Xylab.Workflows.LogicApps.Mvc;
+using Xylab.Workflows.LogicApps.WebApi;
 
 public static class WorkflowEngineExtensions
 {
@@ -156,7 +151,7 @@ public static class WorkflowEngineExtensions
         return engine.Management.ValidateAndCreateFlow("app", flowName, flowPropertiesDefinition, FlowConfiguration.EdgeResourceGroupName);
     }
 
-    public static async Task<IActionResult> InvokeFlowTrigger(
+    public static async Task<IResult> InvokeFlowTrigger(
         this WorkflowEngine engine,
         Flow flow,
         string triggerName,
@@ -280,19 +275,4 @@ public static class WorkflowEngineExtensions
         FlowAccessKeyName = FlowConstants.DefaultFlowAccessKeyName,
         FlowId = string.Empty,
     };
-
-    public static OptionsBuilder<WorkflowEngineOptions> AddWorkflowEngine(this IServiceCollection services)
-    {
-        services.AddHttpContextAccessor();
-        services.TryAddSingleton<WorkflowEngineProvider>();
-        services.AddHostedService<WorkflowEngineHostedService>();
-        return services.AddOptions<WorkflowEngineOptions>().ValidateDataAnnotations().ValidateOnStart();
-    }
-
-    public static OptionsBuilder<WorkflowEngineOptions> WithAzureStorageAccountConnectionString(
-        this OptionsBuilder<WorkflowEngineOptions> builder,
-        string azureStorageAccountConnectionString)
-    {
-        return builder.Configure(options => options.AzureStorageAccountConnectionString = azureStorageAccountConnectionString);
-    }
 }

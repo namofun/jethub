@@ -1,4 +1,4 @@
-﻿namespace Xylab.Workflows.LogicApps.Mvc;
+﻿namespace Xylab.Workflows.LogicApps.WebApi;
 
 using System.IO;
 using System.Net;
@@ -76,7 +76,7 @@ public static class Validation
                 "Request must specify content length.");
         }
 
-        if (request.Headers.ContentType.Count != 1 || request.Headers.ContentType[0] != "application/json")
+        if (!request.HasJsonContentType())
         {
             throw new ErrorResponseMessageException(
                 HttpStatusCode.BadRequest,

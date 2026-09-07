@@ -1,16 +1,14 @@
-﻿namespace Xylab.Workflows.LogicApps.Mvc;
+﻿namespace Xylab.Workflows.LogicApps.WebApi;
 
-using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Workflows.Common.Constants;
 using Microsoft.WindowsAzure.ResourceStack.Common.Instrumentation;
 
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
-public sealed class RequestCorrelationFilterAttribute : Attribute, IAsyncActionFilter
+public sealed class RequestCorrelationFilter : IEndpointFilter
 {
-    public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+    public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
         using (RequestCorrelationContext.Current.Initialize(
             apiVersion: FlowConstants.PrivatePreview20190601ApiVersion,
@@ -24,7 +22,7 @@ public sealed class RequestCorrelationFilterAttribute : Attribute, IAsyncActionF
                 AuthorizedBy = RequestAuthorizationSource.Management,
             });
 
-            await next();
+            return await next(context);
         }
     }
 }

@@ -11,7 +11,7 @@ using Xylab.Management.Services;
 using Xylab.Management.WebDeploy;
 using Xylab.Management.WebDeploy.Deployment;
 using Xylab.Remoting.PowerShellWebService;
-using Xylab.Workflows.LogicApps.Engine;
+using Xylab.Workflows.LogicApps;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -62,6 +62,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapWorkflows("/workflows");
 app.MapHub<LogHub>("/api/log-stream");
 app.MapWebDeploy();
 app.MapPowerShellHttpRequest("/powershell");

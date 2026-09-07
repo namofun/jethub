@@ -1,4 +1,4 @@
-﻿namespace Xylab.Workflows.LogicApps.Mvc;
+﻿namespace Xylab.Workflows.LogicApps.WebApi;
 
 using System;
 using System.IO;

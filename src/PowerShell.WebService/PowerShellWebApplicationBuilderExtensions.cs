@@ -1,5 +1,6 @@
 ﻿namespace Xylab.Remoting.PowerShellWebService;
 
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Connections;
@@ -36,7 +37,7 @@ public static class PowerShellWebApplicationBuilderExtensions
         return builder;
     }
 
-    public static RouteHandlerBuilder MapPowerShellHttpRequest(this IEndpointRouteBuilder builder, string routePatternPrefix)
+    public static RouteHandlerBuilder MapPowerShellHttpRequest(this IEndpointRouteBuilder builder, [StringSyntax("Route")] string routePatternPrefix)
     {
         IPowerShellInvoker invoker = builder.ServiceProvider.GetRequiredService<IPowerShellInvoker>();
         PowerShellEndpoint endpoint = new(invoker);
@@ -46,7 +47,7 @@ public static class PowerShellWebApplicationBuilderExtensions
         return new RouteHandlerBuilder([rb1, rb2]);
     }
 
-    public static HubEndpointConventionBuilder MapPowerShellWebSocket(this IEndpointRouteBuilder builder, string routePattern, Action<HttpConnectionDispatcherOptions>? configureOptions = null)
+    public static HubEndpointConventionBuilder MapPowerShellWebSocket(this IEndpointRouteBuilder builder, [StringSyntax("Route")] string routePattern, Action<HttpConnectionDispatcherOptions>? configureOptions = null)
     {
         return builder.MapHub<PowerShellHub>(routePattern, configureOptions);
     }

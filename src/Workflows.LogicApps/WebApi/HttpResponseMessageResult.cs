@@ -1,14 +1,14 @@
-﻿namespace Xylab.Workflows.LogicApps.Mvc;
+﻿namespace Xylab.Workflows.LogicApps.WebApi;
 
 using System;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 
-public sealed class HttpResponseMessageResult : IActionResult, IDisposable
+public sealed class HttpResponseMessageResult : IResult, IDisposable
 {
     public HttpResponseMessage Response { get; }
 
@@ -17,16 +17,16 @@ public sealed class HttpResponseMessageResult : IActionResult, IDisposable
         Response = response;
     }
 
-    public async Task ExecuteResultAsync(ActionContext context)
+    public async Task ExecuteAsync(HttpContext context)
     {
-        context.HttpContext.Response.StatusCode = (int)Response.StatusCode;
+        context.Response.StatusCode = (int)Response.StatusCode;
         foreach (var header in Response.Headers.Concat(Response.Content.Headers))
         {
-            context.HttpContext.Response.Headers[header.Key] = new StringValues(header.Value.ToArray());
+            context.Response.Headers[header.Key] = new StringValues(header.Value.ToArray());
         }
 
         using Stream respStream = await Response.Content.ReadAsStreamAsync();
-        await respStream.CopyToAsync(context.HttpContext.Response.Body);
+        await respStream.CopyToAsync(context.Response.Body);
     }
 
     public void Dispose()
