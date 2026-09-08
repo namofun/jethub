@@ -10,8 +10,6 @@ using System.IO.Abstractions;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Headers;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
@@ -33,48 +31,37 @@ public abstract class VfsEndpointBase
 
     protected MediaTypeMap MediaTypeMap { get; }
 
-    protected IHttpContextAccessor HttpContextAccessor { get; }
-
-    protected HttpRequest Request => HttpContext.Request;
-
-    protected HttpResponse Response => HttpContext.Response;
-
-    protected HttpContext HttpContext => HttpContextAccessor.HttpContext;
-
-    protected RouteData RouteData => HttpContext.GetRouteData();
-
-    protected VfsEndpointBase(ILogger logger, string rootPath, IFileSystemV2 fileSystem, IHttpContextAccessor httpContextAccessor)
+    protected VfsEndpointBase(ILogger logger, string rootPath, IFileSystemV2 fileSystem)
     {
         ArgumentNullException.ThrowIfNull(fileSystem, nameof(fileSystem));
 
         Logger = logger;
         RootPath = Path.GetFullPath(rootPath.TrimEnd(Path.DirectorySeparatorChar));
-        HttpContextAccessor = httpContextAccessor;
         MediaTypeMap = MediaTypeMap.Default;
         FileSystem = fileSystem;
     }
 
-    public virtual Task<IResult> GetItem()
+    public virtual async Task<IResult> GetItem(string path, VfsRequest request)
     {
-        string localFilePath = GetLocalFilePath();
+        string localFilePath = GetLocalFilePath(path, request);
         IDirectoryInfo info = FileSystem.DirectoryInfo.FromDirectoryName(localFilePath);
 
         if (info.Attributes < 0)
         {
-            return NotFound($"'{info.FullName}' not found.");
+            return Results.NotFoundReason($"'{info.FullName}' not found.");
         }
         else if ((info.Attributes & FileAttributes.Directory) != 0)
         {
             // If request URI does NOT end in a "/" then redirect to one that does
             if (!localFilePath.EndsWith(FileSystem.Path.DirectorySeparatorChar))
             {
-                UriBuilder location = new(UriHelper.GetRequestUri(Request));
+                UriBuilder location = new(request.Uri);
                 location.Path += "/";
-                return RedirectPreserveMethod(location.Uri);
+                return Results.RedirectPreserveMethod(location.Uri);
             }
             else
             {
-                return CreateDirectoryGetResponse(info, localFilePath);
+                return await CreateDirectoryGetResponse(request, info, localFilePath);
             }
         }
         else
@@ -82,48 +69,48 @@ public abstract class VfsEndpointBase
             // If request URI ends in a "/" then redirect to one that does not
             if (localFilePath.EndsWith(FileSystem.Path.DirectorySeparatorChar))
             {
-                UriBuilder location = new(UriHelper.GetRequestUri(Request));
+                UriBuilder location = new(request.Uri);
                 location.Path = location.Path.TrimEnd(UriSegmentSeparator);
-                return RedirectPreserveMethod(location.Uri);
+                return Results.RedirectPreserveMethod(location.Uri);
             }
             else
             {
                 // We are ready to get the file
-                return CreateItemGetResponse(info, localFilePath);
+                return await CreateItemGetResponse(request, info, localFilePath);
             }
         }
     }
 
-    public virtual Task<IResult> PutItem()
+    public virtual Task<IResult> PutItem(string path, VfsRequest request)
     {
-        string localFilePath = GetLocalFilePath();
+        string localFilePath = GetLocalFilePath(path, request);
         IDirectoryInfo info = FileSystem.DirectoryInfo.FromDirectoryName(localFilePath);
         bool itemExists = info.Attributes >= 0;
 
         if (itemExists && (info.Attributes & FileAttributes.Directory) != 0)
         {
-            return CreateDirectoryPutResponse(info, localFilePath);
+            return CreateDirectoryPutResponse(request, info, localFilePath);
         }
         else if (localFilePath.EndsWith(FileSystem.Path.DirectorySeparatorChar))
         {
             // If request URI ends in a "/" then attempt to create the directory.
-            return CreateDirectoryPutResponse(info, localFilePath);
+            return CreateDirectoryPutResponse(request, info, localFilePath);
         }
         else
         {
             // We are ready to update the file
-            return CreateItemPutResponse(info, localFilePath, itemExists);
+            return CreateItemPutResponse(request, info, localFilePath, itemExists);
         }
     }
 
-    public virtual Task<IResult> DeleteItem(bool recursive = false)
+    public virtual async Task<IResult> DeleteItem(string path, VfsRequest request, bool recursive = false)
     {
-        string localFilePath = GetLocalFilePath();
+        string localFilePath = GetLocalFilePath(path, request);
         IDirectoryInfo dirInfo = FileSystem.DirectoryInfo.FromDirectoryName(localFilePath);
 
         if (dirInfo.Attributes < 0)
         {
-            return NotFound($"'{dirInfo.FullName}' not found.");
+            return Results.NotFoundReason($"'{dirInfo.FullName}' not found.");
         }
         else if ((dirInfo.Attributes & FileAttributes.Directory) != 0)
         {
@@ -134,52 +121,52 @@ public abstract class VfsEndpointBase
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Error during delete item: {Message}", ex.Message);
-                return Conflict("Cannot delete directory. It is either not empty or access is not allowed.");
+                return Results.ConflictReason("Cannot delete directory. It is either not empty or access is not allowed.");
             }
 
             // Delete directory succeeded.
-            return Ok();
+            return Results.Ok();
         }
         else if (localFilePath.EndsWith(FileSystem.Path.DirectorySeparatorChar))
         {
             // If request URI ends in a "/" then redirect to one that does not
-            UriBuilder location = new(UriHelper.GetRequestUri(Request));
+            UriBuilder location = new(request.Uri);
             location.Path = location.Path.TrimEnd(UriSegmentSeparator);
-            return RedirectPreserveMethod(location.Uri);
+            return Results.RedirectPreserveMethod(location.Uri);
         }
         else
         {
             // We are ready to delete the file
             IFileInfo fileInfo = FileSystem.FileInfo.FromFileName(localFilePath);
-            return CreateFileDeleteResponse(fileInfo);
+            return await CreateFileDeleteResponse(request, fileInfo);
         }
     }
 
-    protected virtual Task<IResult> CreateDirectoryGetResponse(IDirectoryInfo info, string localFilePath)
+    protected virtual Task<IResult> CreateDirectoryGetResponse(VfsRequest request, IDirectoryInfo info, string localFilePath)
     {
         Contract.Assert(info != null);
         try
         {
             // Enumerate directory
-            return Ok(GetDirectoryResponse(info.GetFileSystemInfos()));
+            return Task.FromResult(Results.Ok(GetDirectoryResponse(request, info.GetFileSystemInfos())));
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error during create directory: {Message}", ex.Message);
-            return InternalServerError(ex.Message);
+            return Task.FromResult(Results.InternalServerErrorReason(ex.Message));
         }
     }
 
-    protected abstract Task<IResult> CreateItemGetResponse(IFileSystemInfo info, string localFilePath);
+    protected abstract Task<IResult> CreateItemGetResponse(VfsRequest request, IFileSystemInfo info, string localFilePath);
 
-    protected virtual Task<IResult> CreateDirectoryPutResponse(IDirectoryInfo info, string localFilePath)
+    protected virtual Task<IResult> CreateDirectoryPutResponse(VfsRequest request, IDirectoryInfo info, string localFilePath)
     {
-        return Conflict("The resource represents a directory which can not be updated.");
+        return Task.FromResult(Results.ConflictReason("The resource represents a directory which can not be updated."));
     }
 
-    protected abstract Task<IResult> CreateItemPutResponse(IFileSystemInfo info, string localFilePath, bool itemExists);
+    protected abstract Task<IResult> CreateItemPutResponse(VfsRequest request, IFileSystemInfo info, string localFilePath, bool itemExists);
 
-    protected virtual Task<IResult> CreateFileDeleteResponse(IFileInfo info)
+    protected virtual Task<IResult> CreateFileDeleteResponse(VfsRequest request, IFileInfo info)
     {
         // Generate file response
         try
@@ -189,13 +176,13 @@ public abstract class VfsEndpointBase
                 info.Delete();
             }
 
-            return Ok();
+            return Task.FromResult(Results.Ok());
         }
         catch (Exception ex)
         {
             // Could not delete the file
             Logger.LogError(ex, "Error during delete files: {Message}", ex.Message);
-            return NotFound(ex.Message);
+            return Task.FromResult(Results.NotFoundReason(ex.Message));
         }
     }
 
@@ -204,18 +191,16 @@ public abstract class VfsEndpointBase
     /// If-Range header with a matching etag and a Range header indicating the 
     /// desired ranges
     /// </summary>
-    protected bool IsRangeRequest(EntityTagHeaderValue currentEtag)
+    protected bool IsRangeRequest(EntityTagHeaderValue currentEtag, VfsRequest request)
     {
-        RequestHeaders headers = Request.GetTypedHeaders();
-
-        if (headers.Range == null)
+        if (request.Headers.Range == null)
         {
             return false;
         }
 
-        if (headers.IfRange != null)
+        if (request.Headers.IfRange != null)
         {
-            return headers.IfRange.EntityTag.Compare(currentEtag, false);
+            return request.Headers.IfRange.EntityTag.Compare(currentEtag, false);
         }
 
         return true;
@@ -224,12 +209,11 @@ public abstract class VfsEndpointBase
     /// <summary>
     /// Indicates whether this is a If-None-Match request with a matching etag.
     /// </summary>
-    protected bool IsIfNoneMatchRequest(EntityTagHeaderValue currentEtag)
+    protected bool IsIfNoneMatchRequest(EntityTagHeaderValue currentEtag, VfsRequest request)
     {
-        var headers = Request.GetTypedHeaders();
         return currentEtag != null
-            && headers.IfNoneMatch != null
-            && headers.IfNoneMatch.Any(entityTag => currentEtag.Compare(entityTag, false));
+            && request.Headers.IfNoneMatch != null
+            && request.Headers.IfNoneMatch.Any(entityTag => currentEtag.Compare(entityTag, false));
     }
 
     /// <summary>
@@ -271,15 +255,14 @@ public abstract class VfsEndpointBase
         return file.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
     }
 
-    private string GetLocalFilePath()
+    private string GetLocalFilePath(string path, VfsRequest request)
     {
-        string path = RouteData.Values["path"] as string;
         if (!string.IsNullOrEmpty(path))
         {
             return FileSystem.Path.GetFullPath(FileSystem.Path.Combine(RootPath, path));
         }
 
-        string reqUri = UriHelper.GetRequestUri(Request).AbsoluteUri.Split('?').First();
+        string reqUri = request.Uri.AbsoluteUri.Split('?').First();
         if (reqUri.EndsWith(UriSegmentSeparator))
         {
             return FileSystem.Path.GetFullPath(RootPath + FileSystem.Path.DirectorySeparatorChar);
@@ -290,11 +273,10 @@ public abstract class VfsEndpointBase
         }
     }
 
-    private IEnumerable<VfsStatEntry> GetDirectoryResponse(IFileSystemInfo[] infos)
+    private IEnumerable<VfsStatEntry> GetDirectoryResponse(VfsRequest request, IFileSystemInfo[] infos)
     {
-        Uri requestUri = UriHelper.GetRequestUri(Request);
-        string baseAddress = requestUri.AbsoluteUri.Split('?').First();
-        string query = requestUri.Query;
+        string baseAddress = request.Uri.AbsoluteUri.Split('?').First();
+        string query = request.Uri.Query;
 
         if (!baseAddress.EndsWith(UriSegmentSeparator)) baseAddress += UriSegmentSeparator;
         foreach (IFileSystemInfo fileSysInfo in infos)
@@ -314,20 +296,4 @@ public abstract class VfsEndpointBase
             };
         }
     }
-
-    protected Task<IResult> Ok() => Task.FromResult(Results.Ok());
-
-    protected Task<IResult> Ok(object result) => Task.FromResult(Results.Ok(result));
-
-    protected Task<IResult> Created() => Task.FromResult(Results.Created());
-
-    protected Task<IResult> InternalServerError(object value = null) => Task.FromResult(Results.InternalServerError(value));
-
-    protected Task<IResult> NotFound(string reason) => Task.FromResult(Results.NotFound(reason));
-
-    protected Task<IResult> Conflict(string reason) => Task.FromResult(Results.Conflict(reason));
-
-    protected Task<IResult> PreconditionFailed(string reason) => Task.FromResult(Results.Text(reason, statusCode: StatusCodes.Status412PreconditionFailed));
-
-    protected Task<IResult> RedirectPreserveMethod(Uri uri) => Task.FromResult(Results.Redirect(uri.AbsolutePath, preserveMethod: true));
 }

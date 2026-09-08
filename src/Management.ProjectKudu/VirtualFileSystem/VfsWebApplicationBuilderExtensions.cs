@@ -24,8 +24,7 @@ public static class VfsWebApplicationBuilderExtensions
     {
         IFileSystemV2 fileSystem = builder.ServiceProvider.GetRequiredService<IFileSystemV2>();
         ILogger<VfsEndpoint> logger = builder.ServiceProvider.GetRequiredService<ILogger<VfsEndpoint>>();
-        IHttpContextAccessor accessor = builder.ServiceProvider.GetRequiredService<IHttpContextAccessor>();
-        VfsEndpoint endpoint = new(logger, fileSystemRoot, fileSystem, accessor);
+        VfsEndpoint endpoint = new(logger, fileSystemRoot, fileSystem);
 
         RouteGroupBuilder group = builder.MapGroup(routePrefix);
         return new RouteHandlerBuilder(

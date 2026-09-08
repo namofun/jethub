@@ -11,22 +11,21 @@ using System.IO.Abstractions;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Headers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
 /// <summary>
 /// A Virtual File System controller which exposes GET, PUT, and DELETE for the entire Kudu file system.
 /// </summary>
-public class VfsEndpoint(ILogger<VfsEndpoint> logger, string rootPath, IFileSystemV2 fileSystem, IHttpContextAccessor httpContextAccessor)
-    : VfsEndpointBase(logger, rootPath, fileSystem, httpContextAccessor)
+public class VfsEndpoint(ILogger<VfsEndpoint> logger, string rootPath, IFileSystemV2 fileSystem)
+    : VfsEndpointBase(logger, rootPath, fileSystem)
 {
-    protected override Task<IResult> CreateDirectoryPutResponse(IDirectoryInfo info, string localFilePath)
+    protected override async Task<IResult> CreateDirectoryPutResponse(VfsRequest request, IDirectoryInfo info, string localFilePath)
     {
         if (info != null && info.Exists)
         {
             // Return a conflict result
-            return base.CreateDirectoryPutResponse(info, localFilePath);
+            return await base.CreateDirectoryPutResponse(request, info, localFilePath);
         }
 
         try
@@ -36,14 +35,14 @@ public class VfsEndpoint(ILogger<VfsEndpoint> logger, string rootPath, IFileSyst
         catch (IOException ex)
         {
             Logger.LogError(ex, "Error during create directory: {Message}", ex.Message);
-            return Conflict("Cannot delete directory. It is either not empty or access is not allowed.");
+            return Results.ConflictReason("Cannot delete directory. It is either not empty or access is not allowed.");
         }
 
         // Return 201 Created response
-        return Created();
+        return Results.Created();
     }
 
-    protected override Task<IResult> CreateItemGetResponse(IFileSystemInfo info, string localFilePath)
+    protected override Task<IResult> CreateItemGetResponse(VfsRequest request, IFileSystemInfo info, string localFilePath)
     {
         return Task.FromResult(
             Results.File(
@@ -53,25 +52,22 @@ public class VfsEndpoint(ILogger<VfsEndpoint> logger, string rootPath, IFileSyst
                 entityTag: CreateEntityTag(info)));
     }
 
-    protected override async Task<IResult> CreateItemPutResponse(IFileSystemInfo info, string localFilePath, bool itemExists)
+    protected override async Task<IResult> CreateItemPutResponse(VfsRequest request, IFileSystemInfo info, string localFilePath, bool itemExists)
     {
         // Check that we have a matching conditional If-Match request for existing resources
         if (itemExists)
         {
-            var requestHeaders = Request.GetTypedHeaders();
-            var responseHeaders = Response.GetTypedHeaders();
-
             // Get current etag
             EntityTagHeaderValue currentEtag = CreateEntityTag(info);
 
             // Existing resources require an etag to be updated.
-            if (requestHeaders.IfMatch == null)
+            if (request.Headers.IfMatch == null || request.Headers.IfMatch.Count == 0)
             {
-                return await PreconditionFailed("Updating an existing resource requires an If-Match header carrying a single, strong ETag.");
+                return Results.PreconditionFailedReason("Updating an existing resource requires an If-Match header carrying a single, strong ETag.");
             }
 
             bool isMatch = false;
-            foreach (EntityTagHeaderValue etag in requestHeaders.IfMatch)
+            foreach (EntityTagHeaderValue etag in request.Headers.IfMatch)
             {
                 if (currentEtag.Compare(etag, false) || etag == EntityTagHeaderValue.Any)
                 {
@@ -82,8 +78,7 @@ public class VfsEndpoint(ILogger<VfsEndpoint> logger, string rootPath, IFileSyst
 
             if (!isMatch)
             {
-                responseHeaders.ETag = currentEtag;
-                return await PreconditionFailed("ETag does not represent the latest state of the resource.");
+                return Results.PreconditionFailedReason("ETag does not represent the latest state of the resource.").WithETag(currentEtag);
             }
         }
 
@@ -94,53 +89,47 @@ public class VfsEndpoint(ILogger<VfsEndpoint> logger, string rootPath, IFileSyst
             {
                 try
                 {
-                    await Request.Body.CopyToAsync(fileStream);
+                    await request.Body.CopyToAsync(fileStream);
                 }
                 catch (Exception ex)
                 {
                     Logger.LogError(ex, "Error during copying file content: {Message}", ex.Message);
-                    return await Conflict($"Could not write to local resource '{localFilePath}' due to error '{ex.Message}'.");
+                    return Results.ConflictReason($"Could not write to local resource '{localFilePath}' due to error '{ex.Message}'.");
                 }
             }
 
             // Set updated etag for the file
             info.Refresh();
-            ResponseHeaders headers = Response.GetTypedHeaders();
-            headers.ETag = CreateEntityTag(info);
-            headers.LastModified = info.LastWriteTimeUtc;
 
             // Return either 204 No Content or 201 Created response
-            return Results.StatusCode(itemExists ? 204 : 201);
+            return Results.StatusCode(itemExists ? 204 : 201).WithETag(CreateEntityTag(info), info.LastWriteTimeUtc);
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error during returning result: {Message}", ex.Message);
-            return await Conflict($"Could not write to local resource '{localFilePath}' due to error '{ex.Message}'.");
+            return Results.ConflictReason($"Could not write to local resource '{localFilePath}' due to error '{ex.Message}'.");
         }
     }
 
-    protected override Task<IResult> CreateFileDeleteResponse(IFileInfo info)
+    protected override async Task<IResult> CreateFileDeleteResponse(VfsRequest request, IFileInfo info)
     {
         // Existing resources require an etag to be updated.
-        var requestHeaders = Request.GetTypedHeaders();
-
         // CORE TODO double check semantics of what you get from GetTypedHeaders() (empty strings vs null, etc.)
-        if (requestHeaders.IfMatch == null)
+        if (request.Headers.IfMatch == null)
         {
-            return PreconditionFailed("Updating an existing resource requires an If-Match header carrying a single, strong ETag.");
+            return Results.PreconditionFailedReason("Updating an existing resource requires an If-Match header carrying a single, strong ETag.");
         }
 
         // Get current etag
         EntityTagHeaderValue currentEtag = CreateEntityTag(info);
-        bool isMatch = requestHeaders.IfMatch.Any(etag => etag == EntityTagHeaderValue.Any || currentEtag.Equals(etag));
+        bool isMatch = request.Headers.IfMatch.Any(etag => etag == EntityTagHeaderValue.Any || currentEtag.Equals(etag));
 
         if (!isMatch)
         {
-            Response.GetTypedHeaders().ETag = currentEtag;
-            return Conflict("ETag does not represent the latest state of the resource.");
+            return Results.ConflictReason("ETag does not represent the latest state of the resource.").WithETag(currentEtag);
         }
 
-        return base.CreateFileDeleteResponse(info);
+        return await base.CreateFileDeleteResponse(request, info);
     }
 
     /// <summary>
