@@ -36,7 +36,7 @@ public class WorkflowEngineProvider(
 
     private readonly TaskCompletionSource<WorkflowEngine> engineLazy = new();
 
-    public bool IsReady => engineLazy.Task.IsCompleted;
+    public WorkflowEngine? Instance => engineLazy.Task.IsCompleted ? engineLazy.Task.Result : null;
 
     public Task<WorkflowEngine> CreateEngineAsync()
     {
@@ -134,10 +134,5 @@ public class WorkflowEngineProvider(
             engineLazy.TrySetCanceled();
             return null;
         }
-    }
-
-    public Task<WorkflowEngine> GetEngineAsync()
-    {
-        return engineLazy.Task;
     }
 }

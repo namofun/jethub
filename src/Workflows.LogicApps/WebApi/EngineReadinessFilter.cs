@@ -7,23 +7,21 @@ using Xylab.Workflows.LogicApps.Engine;
 
 public class EngineReadinessFilter(WorkflowEngineProvider workflowEngineProvider) : IEndpointFilter
 {
-    public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
+    public ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
-        if (workflowEngineProvider.IsReady)
+        if (workflowEngineProvider.Instance != null)
         {
-            var engine = await workflowEngineProvider.GetEngineAsync();
-            context.HttpContext.Features.Set(engine);
-            return await next(context);
+            return next(context);
         }
         else
         {
-            return new NewtonsoftJsonResult(
+            return ValueTask.FromResult<object?>(new NewtonsoftJsonResult(
                 new ErrorResponseMessage(
                     ErrorResponseCode.ServerTimeout,
                     "Workflow engine initialization is in progress."))
             {
                 StatusCode = StatusCodes.Status503ServiceUnavailable,
-            };
+            });
         }
     }
 }

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Workflows.Common.ErrorResponses;
@@ -15,13 +16,9 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xylab.Workflows.LogicApps.Engine;
 
-public class WorkflowsEndpoint(IHttpContextAccessor httpContextAccessor)
+public class WorkflowsEndpoint(WorkflowEngineProvider provider)
 {
-    public HttpContext HttpContext => httpContextAccessor.HttpContext!;
-
-    public HttpRequest Request => HttpContext.Request;
-
-    public WorkflowEngine Engine => HttpContext.Features.Get<WorkflowEngine>()!;
+    public WorkflowEngine Engine => provider.Instance!;
 
     [HttpGet("")]
     public async Task<IResult> GetFlows()
@@ -72,7 +69,7 @@ public class WorkflowsEndpoint(IHttpContextAccessor httpContextAccessor)
     }
 
     [HttpAny("{workflowId}/triggers/{triggerName}/paths/invoke")]
-    public async Task<IResult> InvokeTrigger(string workflowId, string triggerName)
+    public async Task<IResult> InvokeTrigger(string workflowId, string triggerName, HttpRequest request, CancellationToken cancellationToken)
     {
         RequestCorrelationContext.Current.AuthenticationIdentity.AuthorizedBy = RequestAuthorizationSource.Direct;
         Flow flow = await Engine.FindFlowByIdOrName(workflowId).NotNull();
@@ -82,8 +79,8 @@ public class WorkflowsEndpoint(IHttpContextAccessor httpContextAccessor)
             flow: flow,
             triggerName: triggerName,
             trigger: trigger,
-            req: await HttpRequestMessageFactory.FromHttpContext(Request),
-            cancellationToken: HttpContext.RequestAborted);
+            req: await HttpRequestMessageFactory.FromHttpContext(request),
+            cancellationToken: cancellationToken);
     }
 
     [HttpGet("{workflowId}/runs")]
@@ -167,9 +164,9 @@ public class WorkflowsEndpoint(IHttpContextAccessor httpContextAccessor)
     }
 
     [HttpPost("{workflowName}")]
-    public async Task<IResult> UpsertWorkflow(string workflowName)
+    public async Task<IResult> UpsertWorkflow(string workflowName, HttpRequest request)
     {
-        FlowPropertiesDefinition definition = await Validation.GetContentJson<FlowPropertiesDefinition>(Request);
+        FlowPropertiesDefinition definition = await Validation.GetContentJson<FlowPropertiesDefinition>(request);
         definition.Parameters ??= new();
 
         await Engine.ValidateAndCreateFlow(workflowName, definition);

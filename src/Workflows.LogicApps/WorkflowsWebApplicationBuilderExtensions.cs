@@ -34,8 +34,8 @@ public static class WorkflowsWebApplicationBuilderExtensions
         this IEndpointRouteBuilder builder,
         [StringSyntax("Route")] string routePatternPrefix)
     {
-        var accessor = builder.ServiceProvider.GetRequiredService<IHttpContextAccessor>();
-        WorkflowsEndpoint endpoint = new(accessor);
+        WorkflowEngineProvider provider = builder.ServiceProvider.GetRequiredService<WorkflowEngineProvider>();
+        WorkflowsEndpoint endpoint = new(provider);
 
         RouteGroupBuilder group = builder.MapGroup(routePatternPrefix);
         group.AddEndpointFilter<EngineReadinessFilter>();
