@@ -18,7 +18,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Logging;
 
-public class LogStreamManager(IFileSystemV2 fileSystem, ILogger logger, LogStreamOptions options)
+public class LogStreamManager(IFileSystemV2 fileSystem, ILogger logger, LogStreamOptions options) : IDisposable
 {
     private const string FilterQueryKey = "filter";
 
@@ -39,8 +39,6 @@ public class LogStreamManager(IFileSystemV2 fileSystem, ILogger logger, LogStrea
     private DateTime _lastTraceTime;
     private DateTime _startTime;
     private Stopwatch stopwatch;
-
-    private const string volatileLogsPath = "/appsvctmp/volatile/logs/runtime";
 
     // CORE TODO
     //private ShutdownDetector _shutdownDetector;
@@ -79,6 +77,7 @@ public class LogStreamManager(IFileSystemV2 fileSystem, ILogger logger, LogStrea
 
         fileSystem.Directory.EnsureDirectory(mountedLogFilesDir);
 
+        /*
         if (ShouldMonitiorMountedLogsPath(mountedLogFilesDir))
         {
             path = mountedLogFilesDir;
@@ -86,7 +85,12 @@ public class LogStreamManager(IFileSystemV2 fileSystem, ILogger logger, LogStrea
         else
         {
             path = volatileLogsPath;
-        }
+        }*/
+        path = mountedLogFilesDir;
+
+        bool showPreviousTracesTail =
+            context.Request.Query.ContainsKey("showPrevious")
+            && context.Request.Query["showPrevious"] == "true";
 
         context.Response.Headers["Content-Type"] = "text/event-stream";
 
@@ -99,54 +103,64 @@ public class LogStreamManager(IFileSystemV2 fileSystem, ILogger logger, LogStrea
             Initialize(path, context);
         }
 
-        if (_logFiles != null)
+        if (showPreviousTracesTail)
         {
-            NotifyClientWithLineBreak("Starting Log Tail -n 10 of existing logs ----", context);
-
-            try
+            if (_logFiles != null)
             {
-                foreach (string log in _logFiles.Keys)
+                NotifyClientWithLineBreak("Starting Log Tail -n 10 of existing logs ----", context);
+
+                try
                 {
-                    var reader = new StreamReader(log, Encoding.ASCII);
-
-                    var vfsPath = GetFileVfsPath(log);
-
-                    var printLine = log + " " + (!string.IsNullOrEmpty(vfsPath) ? " (" + vfsPath + ")" : "");
-
-                    NotifyClientWithLineBreak(string.Format(
-                                CultureInfo.CurrentCulture,
-                                printLine,
-                                DateTime.UtcNow.ToString("s"),
-                                Environment.NewLine), context);
-
-                    foreach (string logLine in Tail(reader, 10))
+                    foreach (string log in _logFiles.Keys)
                     {
-                        await context.Response.WriteAsync(logLine);
+                        using var reader = new StreamReader(log, Encoding.ASCII, false, new FileStreamOptions { Share = FileShare.ReadWrite });
+
+                        var vfsPath = GetFileVfsPath(log);
+
+                        var printLine = log + " " + (!string.IsNullOrEmpty(vfsPath) ? " (" + vfsPath + ")" : "");
+
+                        NotifyClientWithLineBreak(string.Format(
+                                    CultureInfo.CurrentCulture,
+                                    printLine,
+                                    DateTime.UtcNow.ToString("s"),
+                                    Environment.NewLine), context);
+
+                        foreach (string logLine in Tail(reader, 10))
+                        {
+                            await context.Response.WriteAsync(logLine);
+                            await context.Response.WriteAsync(Environment.NewLine);
+                        }
+
                         await context.Response.WriteAsync(Environment.NewLine);
                     }
-
-                    await context.Response.WriteAsync(Environment.NewLine);
                 }
+                catch (Exception)
+                {
+                    // best effort to get tail logs
+                }
+
+                NotifyClientWithLineBreak("Ending Log Tail of existing logs ---", context);
             }
-            catch (Exception)
+            else
             {
-                // best effort to get tail logs
+                logger.LogError("LogStream: No pervious logfiles");
             }
 
-            NotifyClientWithLineBreak("Ending Log Tail of existing logs ---", context);
+            NotifyClientWithLineBreak("Starting Live Log Stream ---", context);
         }
-        else
-        {
-            logger.LogError("LogStream: No pervious logfiles");
-        }
-
-        NotifyClientWithLineBreak("Starting Live Log Stream ---", context);
 
         // CORE TODO diagnostics setting for enabling app logging            
 
         while (!context.RequestAborted.IsCancellationRequested)
         {
-            await Task.Delay(HeartbeatInterval);
+            try
+            {
+                await Task.Delay(HeartbeatInterval, context.RequestAborted);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
 
             var elapsed = stopwatch.Elapsed;
 
@@ -240,7 +254,7 @@ public class LogStreamManager(IFileSystemV2 fileSystem, ILogger logger, LogStrea
             }
         }
 
-        return count==2;
+        return count == 2;
     }
 
     private void Initialize(string path, HttpContext context)
@@ -254,11 +268,11 @@ public class LogStreamManager(IFileSystemV2 fileSystem, ILogger logger, LogStrea
             var logFiles = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
             foreach (var ext in LogFileExtensions)
             {
-                foreach (var file in Directory.GetFiles(path, "*" + ext, SearchOption.AllDirectories))
+                foreach (var file in fileSystem.Directory.GetFiles(path, "*" + ext, SearchOption.AllDirectories))
                 {
                     try
                     {
-                        logFiles[file] = new FileInfo(file).Length;
+                        logFiles[file] = fileSystem.FileInfo.FromFileName(file).Length;
                     }
                     catch (Exception ex)
                     {

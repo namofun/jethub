@@ -1,11 +1,16 @@
+using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Web;
 using Xylab.Management.Automation.Cmdlets;
+using Xylab.Management.LogStream;
 using Xylab.Management.Services;
 using Xylab.Management.VirtualFileSystem;
 using Xylab.Management.WebDeploy;
@@ -14,6 +19,24 @@ using Xylab.Remoting.PowerShellWebService;
 using Xylab.Workflows.LogicApps;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddAuthentication("Default")
+    .AddPolicyScheme("Default", null, options =>
+    {
+        options.ForwardChallenge = JwtBearerDefaults.AuthenticationScheme;
+        options.ForwardForbid = JwtBearerDefaults.AuthenticationScheme;
+        options.ForwardDefaultSelector = context =>
+        {
+            var authorization = context.Request.Headers.Authorization.ToString();
+            return authorization.Equals("Bearer", StringComparison.OrdinalIgnoreCase)
+                || authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+                ? JwtBearerDefaults.AuthenticationScheme
+                : OpenIdConnectDefaults.AuthenticationScheme;
+        };
+    });
+
+builder.Services.AddAuthentication()
+    .AddMicrosoftIdentityWebApp(builder.Configuration);
 
 builder.Services.AddAuthentication()
     .AddMicrosoftIdentityWebApi(builder.Configuration);
@@ -62,8 +85,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapLoginAndLogout();
 app.MapWorkflows("/workflows");
 app.MapVirtualFileSystem("/files", "/");
+app.MapLogStream("/logstream", new() { Path = Path.Combine(Environment.CurrentDirectory, "playground") });
 app.MapHub<LogHub>("/api/log-stream");
 app.MapWebDeploy();
 app.MapPowerShellHttpRequest("/powershell");

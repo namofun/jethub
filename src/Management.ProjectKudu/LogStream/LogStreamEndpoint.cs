@@ -8,11 +8,11 @@ using Microsoft.Extensions.Logging;
 
 public class LogStreamEndpoint(LogStreamOptions options)
 {
-    public Task InvokeAsync(HttpContext context)
+    public async Task InvokeAsync(HttpContext context)
     {
         IFileSystemV2 fileSystem = context.RequestServices.GetService<IFileSystemV2>() ?? new FileSystemV2();
         ILogger logger = context.RequestServices.GetRequiredService<ILogger<LogStreamEndpoint>>();
-        LogStreamManager manager = new(fileSystem, logger, options);
-        return manager.ProcessRequest(context);
+        using LogStreamManager manager = new(fileSystem, logger, options);
+        await manager.ProcessRequest(context);
     }
 }
