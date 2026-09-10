@@ -6,13 +6,14 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 
 public static class VfsWebApplicationBuilderExtensions
 {
     public static IServiceCollection AddVirtualFileSystem(this IServiceCollection services)
     {
-        services.AddSingleton<IFileSystemV2, FileSystemV2>();
+        services.TryAddSingleton<IFileSystemV2, FileSystemV2>();
         services.AddHttpContextAccessor();
         return services;
     }
