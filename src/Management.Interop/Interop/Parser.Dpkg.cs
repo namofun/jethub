@@ -2,7 +2,7 @@
 
 using System.Collections.Generic;
 using System.Runtime.Versioning;
-using Xylab.Management.Models;
+using Xylab.Management.SystemInformation;
 
 internal partial class Parser
 {

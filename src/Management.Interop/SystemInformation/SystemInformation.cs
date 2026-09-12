@@ -1,4 +1,4 @@
-﻿namespace Xylab.Management.Models;
+﻿namespace Xylab.Management.SystemInformation;
 
 using System;
 using System.Text.Json.Serialization;

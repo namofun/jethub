@@ -1,4 +1,4 @@
-﻿namespace Xylab.Management.Models;
+﻿namespace Xylab.Management.Interop;
 
 public class ProcessResult
 {

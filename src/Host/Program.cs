@@ -9,7 +9,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Web;
 using Xylab.Management;
 using Xylab.Management.Automation.Cmdlets;
-using Xylab.Management.Services;
 using Xylab.Management.WebDeploy;
 using Xylab.Management.WebDeploy.Deployment;
 using Xylab.Remoting.PowerShellWebService;

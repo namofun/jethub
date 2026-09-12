@@ -1,4 +1,4 @@
-﻿namespace Xylab.Management.Services;
+﻿namespace Xylab.Management.Interop;
 
 using System;
 using System.Diagnostics;
@@ -6,7 +6,6 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Xylab.Management.Models;
 
 public class SystemDiagnosticsProcessFactory : IProcessFactory
 {

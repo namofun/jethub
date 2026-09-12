@@ -1,4 +1,4 @@
-﻿namespace Xylab.Management.Services;
+﻿namespace Xylab.Management.SystemInformation;
 
 using System;
 using System.Collections.Generic;
@@ -7,8 +7,6 @@ using System.Linq;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Tmds.DBus;
-using Xylab.Management.Models;
-using static Xylab.Management.Interop.DBus;
 
 [SupportedOSPlatform("linux")]
 public class LinuxSystem : IHostSystem
@@ -140,8 +138,8 @@ public class LinuxSystem : IHostSystem
     public async Task<List<ServiceInformation>> GetServicesAsync()
     {
         List<ServiceInformation> services = new();
-        IManager manager = Connection.System.CreateProxy<IManager>(Systemd.Service, Systemd.RootPath);
-        foreach (Unit unitInfo in await manager.ListUnitsByPatternsAsync(Array.Empty<string>(), new[] { "*.service" }))
+        Interop.DBus.IManager manager = Connection.System.CreateProxy<Interop.DBus.IManager>(Interop.DBus.Systemd.Service, Interop.DBus.Systemd.RootPath);
+        foreach (Interop.DBus.Unit unitInfo in await manager.ListUnitsByPatternsAsync(Array.Empty<string>(), new[] { "*.service" }))
         {
             if (unitInfo.UnitName.EndsWith(".service"))
             {

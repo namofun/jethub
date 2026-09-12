@@ -1,8 +1,8 @@
-﻿namespace Xylab.Management.Services;
+﻿namespace Xylab.Management.Interop;
 
 using System.ComponentModel;
 using System.Runtime.Versioning;
-using Xylab.Management.Models;
+using Xylab.Management.SystemInformation;
 
 [SupportedOSPlatform("linux")]
 public class PosixUtilities : ISystemUtilities
@@ -64,7 +64,7 @@ public class PosixUtilities : ISystemUtilities
         originalCmask = Interop.Libc.umask(cmask);
     }
 
-    private static UserInformation PasswdToUserInformation(in Interop.Libc.passwd_t passwd)
+    private static UserInformation PasswdToUserInformation(in Libc.passwd_t passwd)
     {
         return new UserInformation
         {

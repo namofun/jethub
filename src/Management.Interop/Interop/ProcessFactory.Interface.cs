@@ -1,8 +1,7 @@
 ﻿#nullable enable
-namespace Xylab.Management.Services;
+namespace Xylab.Management.Interop;
 
 using System.Threading.Tasks;
-using Xylab.Management.Models;
 
 public interface IProcessFactory
 {

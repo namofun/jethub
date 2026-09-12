@@ -1,5 +1,5 @@
 ﻿#nullable enable
-namespace Xylab.Management.Models;
+namespace Xylab.Management.Interop;
 
 using System;
 using System.Collections.Generic;

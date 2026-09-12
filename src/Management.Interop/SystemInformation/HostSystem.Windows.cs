@@ -1,4 +1,4 @@
-namespace Xylab.Management.Services;
+namespace Xylab.Management.SystemInformation;
 
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,6 @@ using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Management.Infrastructure;
-using Xylab.Management.Models;
 
 [SupportedOSPlatform("windows")]
 public sealed class WindowsSystem : IHostSystem

@@ -1,7 +1,9 @@
 ﻿#nullable enable
-namespace Xylab.Management.Services;
+using Xylab;
 
-using Xylab.Management.Models;
+namespace Xylab.Management.Interop;
+
+using Xylab.Management.SystemInformation;
 
 public interface ISystemUtilities
 {

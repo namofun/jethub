@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Xylab.Management.Services;
 using Xylab.Management.SystemInformation;
 
 public static class SysInfoWebApplicationBuilderExtensions
