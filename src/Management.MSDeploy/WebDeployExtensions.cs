@@ -1,10 +1,11 @@
-﻿namespace Xylab.Management.WebDeploy;
+﻿namespace Xylab.Management;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using Xylab.Management.WebDeploy;
 
 public static class WebDeployExtensions
 {
@@ -29,9 +30,11 @@ public static class WebDeployExtensions
     {
         RouteGroupBuilder group = builder.MapGroup(baseUrl);
         MSDeployEndpoint endpoint = builder.ServiceProvider.GetRequiredService<MSDeployEndpoint>();
-        var rb1 = group.MapMethods("/MsDeployAgentService", ["HEAD", "POST"], endpoint.HandleAsync);
-        var rb2 = group.MapMethods("/msdeploy.axd", ["HEAD", "POST"], endpoint.HandleAsync);
-        return new RouteHandlerBuilder([rb1, rb2]);
+        return new RouteHandlerBuilder(
+        [
+            group.MapMethods("/MsDeployAgentService", ["HEAD", "POST"], endpoint.HandleAsync),
+            group.MapMethods("/msdeploy.axd", ["HEAD", "POST"], endpoint.HandleAsync),
+        ]);
     }
 
     private class WebDeployOptionsValidator(IServiceProvider serviceProvider) : IValidateOptions<WebDeployOptions>
