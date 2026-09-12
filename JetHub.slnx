@@ -17,6 +17,7 @@
     <Project Path="src/Management.Interop/Management.Interop.csproj" />
     <Project Path="src/Management.MSDeploy/Management.WebDeploy.csproj" />
     <Project Path="src/Management.ProjectKudu/Management.Kudu.csproj" />
+    <Project Path="src/Management.WebService/Management.WebService.csproj" />
     <Project Path="src/PowerShell.Client/Remoting.PowerShellClient.csproj" />
     <Project Path="src/PowerShell.Cmdlets/PowerShell.Cmdlets.csproj" />
     <Project Path="src/PowerShell.WebService/Remoting.PowerShellWebService.csproj" />

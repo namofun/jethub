@@ -1,4 +1,4 @@
-﻿namespace Xylab.Management.VirtualFileSystem;
+﻿namespace Xylab.Management;
 
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Abstractions;
@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using Xylab.Management.VirtualFileSystem;
 
 public static class VfsWebApplicationBuilderExtensions
 {

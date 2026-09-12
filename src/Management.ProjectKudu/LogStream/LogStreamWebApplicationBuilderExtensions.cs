@@ -1,8 +1,9 @@
-﻿namespace Xylab.Management.LogStream;
+﻿namespace Xylab.Management;
 
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
+using Xylab.Management.LogStream;
 
 public static class LogStreamWebApplicationBuilderExtensions
 {
